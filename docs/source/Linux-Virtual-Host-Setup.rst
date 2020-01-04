@@ -17,7 +17,7 @@ Create user::
     chmod 600 .ssh/authorized_keys
     copy puttygen public key, paste into .ssh/authorized_keys
     create session configuration in putty
-    update <vhostuser>’s .bashrc (puts time in history output)
+    update <vhostuser>'s .bashrc (puts time in history output)
     -  export HISTTIMEFORMAT="%Y-%m-%d %H:%M "
 
 Put <vhostuser> in apache group, access to <vhostuser> group,
