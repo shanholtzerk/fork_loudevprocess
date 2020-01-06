@@ -13,6 +13,8 @@ Create user
     sudo adduser <vhostuser>
     sudo passwd <vhostuser>
     su - <vhostuser>
+    # - update <vhostuser>'s .bashrc (puts time in history output)
+    # -  export HISTTIMEFORMAT="%Y-%m-%d %H:%M "
     mkdir .ssh
     chmod 700 .ssh
     touch .ssh/authorized_keys
@@ -23,8 +25,6 @@ Create user
     #   - copy from PuTTYgen window
     # - set Connection > Data > Auto-login username
     # - Session Save
-    # - update <vhostuser>'s .bashrc (puts time in history output)
-    # -  export HISTTIMEFORMAT="%Y-%m-%d %H:%M "
 
 Put <vhostuser> in apache group, access to <vhostuser> group,
 /home/<vhostuser> default <vhostuser> group
@@ -36,6 +36,22 @@ Put <vhostuser> in apache group, access to <vhostuser> group,
     sudo usermod -a -G <vhostuser> <vhostuser>
     sudo chown -R <vhostuser>:<vhostuser> /home/<vhostuser>
     sudo chmod -R g+s /home/<vhostuser>/
+
+Update DNS (optional)
+--------------------------
+May need to create the following records in DNS server.
+
++-----------------+--------------------+--------------------+
+| **type**        | **name**           | **value**          |
++-----------------+--------------------+--------------------+
+| A               | <subhost>          | <host ip>          |
++-----------------+--------------------+--------------------+
+| CNAME           | www.<subhost>      | <subhost>.<host>   |
++-----------------+--------------------+--------------------+
+| CNAME           | sandbox.<subhost>  | <subhost>.<host>   |
++-----------------+--------------------+--------------------+
+
+For example, <subhost> = routes, <host> = routes.loutilities.com
 
 Create VHOST
 ------------
@@ -68,7 +84,7 @@ Create /etc/httpd/sites-available/www.<vhost>.conf
     #  SSLCertificateKeyFile /etc/letsencrypt/live/www.<vhost>.com/privkey.pem
     #  SSLCertificateChainFile /etc/letsencrypt/live/www.<vhost>.com/chain.pem
     #
-    #  WSGIDaemonProcess www.<vhost>.com user=<vhost>mgr group=<vhost>mgr threads=3 display-name=%{GROUP}
+    #  WSGIDaemonProcess www.<vhost>.com user=<vhostuser> group=<vhostuser> threads=3 display-name=%{GROUP}
     #  WSGIScriptAlias / /var/www/www.<vhost>.com/<vhost>/<vhost>/<vhost>.wsgi
     #  WSGIProcessGroup www.<vhost>.com
     #
@@ -87,17 +103,25 @@ Create /etc/httpd/sites-available/www.<vhost>.conf
     #
     #</VirtualHost>
 
+Create the directories to hold the vhost on disk
+
+.. code-block:: shell
+
     sudo mkdir /var/www/www.<vhost>
     sudo mkdir /var/www/www.<vhost>/logs
 
 Enable VHOST
 ============
 
-(first host on server)::
+(first host on server)
+
+.. code-block:: shell
 
     sudo a2ensite \_default
 
-additional hosts::
+additional hosts
+
+.. code-block:: shell
 
     sudo a2ensite <virtualhost>
     sudo apachectl configtest # verify syntax before using
@@ -105,39 +129,49 @@ additional hosts::
 
 Set up VHOST SSL
 ----------------
-::
+
+.. code-block:: shell
 
     sudo certbot --apache certonly -d <vhost>
+    # maybe like sudo certbot --apache certonly -d www.contracts.loutilities.com -d contracts.loutilities.com
     sudo vim /etc/httpd/sites-available/<vhost>.conf
-        [uncomment the commented SSL related lines]
+    #    [uncomment the commented SSL related lines]
     sudo apachectl configtest # verify configuration syntax
     sudo apachectl restart
     sudo certbot renew --dry-run # verify operation
     sudo vim /etc/cron.d/certbot # run twice daily
-        0 \*/12 \* \* \* root /usr/bin/certbot renew
+    #    0 \*/12 \* \* \* root /usr/bin/certbot renew
 
 Archive [ignore]
 ================
 
-in godaddy (or wherever dns is being hosted), make sure <virtualhost> dns entry points to IP address of this server::
+in godaddy (or wherever dns is being hosted), make sure <virtualhost> dns entry points to IP address of this server
+
+.. code-block:: shell
 
     sudo mkdir -p /var/www/<virtualhost>/
 
-first host on server::
+first host on server
+
+.. code-block:: shell
 
    sudo chmod -R 755 /var/www
    sudo mkdir /etc/httpd/sites-available
    sudo mkdir /etc/httpd/sites-enabled
-   add to end of /etc/httpd/conf/httpd.conf
-   IncludeOptional sites-enabled/*.conf
+   # add to end of /etc/httpd/conf/httpd.conf
+   #   IncludeOptional sites-enabled/*.conf
 
-create /etc/httpd/sites-available/_default.conf::
+create /etc/httpd/sites-available/_default.conf
+
+.. code-block:: apache
 
    <VirtualHost \*:80>
    DocumentRoot /var/www/html
    </VirtualHost>
 
-create /etc/httpd/sites-available/<virtualhost>.conf::
+create /etc/httpd/sites-available/<virtualhost>.conf
+
+.. code-block:: apache
 
    <VirtualHost \*:80>
    ServerName <virtualhost>
@@ -155,7 +189,9 @@ create /etc/httpd/sites-available/<virtualhost>.conf::
    CustomLog /var/www/<virtualhost>/logs/requests.log combined
    </VirtualHost>
 
-(first host on server) sudo a2ensite \_default::
+(first host on server) sudo a2ensite \_default
+
+.. code-block:: shell
 
     sudo a2ensite <virtualhost>
     sudo apachectl restart
