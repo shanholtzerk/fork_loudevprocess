@@ -6,7 +6,9 @@ See https://www.digitalocean.com/community/tutorials/how-to-set-up-apache-virtua
 Create user for VHOST update
 ----------------------------
 
-Create user::
+Create user
+
+.. code-block:: shell
 
     sudo adduser <vhostuser>
     sudo passwd <vhostuser>
@@ -15,13 +17,19 @@ Create user::
     chmod 700 .ssh
     touch .ssh/authorized_keys
     chmod 600 .ssh/authorized_keys
-    copy puttygen public key, paste into .ssh/authorized_keys
-    create session configuration in putty
-    update <vhostuser>'s .bashrc (puts time in history output)
-    -  export HISTTIMEFORMAT="%Y-%m-%d %H:%M "
+    # - copy puttygen public key, paste into .ssh/authorized_keys
+    # - create session configuration in putty
+    # - set Connection > SSH > Auth > Private key file for authentication
+    #   - copy from PuTTYgen window
+    # - set Connection > Data > Auto-login username
+    # - Session Save
+    # - update <vhostuser>'s .bashrc (puts time in history output)
+    # -  export HISTTIMEFORMAT="%Y-%m-%d %H:%M "
 
 Put <vhostuser> in apache group, access to <vhostuser> group,
-/home/<vhostuser> default <vhostuser> group::
+/home/<vhostuser> default <vhostuser> group
+
+.. code-block:: shell
 
     sudo usermod -a -G apache <vhostuser>
     sudo usermod -g apache <vhostuser>
@@ -32,48 +40,52 @@ Put <vhostuser> in apache group, access to <vhostuser> group,
 Create VHOST
 ------------
 
-Create /etc/httpd/sites-available/www.<vhost>.conf::
+Create /etc/httpd/sites-available/www.<vhost>.conf
 
-       <VirtualHost \*:80>
-           ServerName <vhost>
-           ServerAlias www.<vhost>
-           # Redirect permanent / https://<vhost>/
-           DocumentRoot /var/www/www.<vhost>
-           LogLevel warn
-           ErrorLog /var/www/www.<vhost>/logs/error.log
-           CustomLog /var/www/www.<vhost>/logs/requests.log combined
-           <Directory /var/www/www.<vhost>>
-               allow from all
-               Options +Indexes
-           </Directory>
-       </VirtualHost>
-       #<VirtualHost \*:443>
-       # ServerName <vhost>
-       # ServerAlias www.<vhost>
-       # ServerAdmin lking@pobox.com
-       # SSLEngine on
-       # SSLCertificateFile /etc/letsencrypt/live/www.<vhost>/fullchain.pem
-       # SSLCertificateKeyFile /etc/letsencrypt/live/www.<vhost>/privkey.pem
-       # SSLCertificateChainFile /etc/letsencrypt/live/www.<vhost>/chain.pem
-       #
-       # WSGIDaemonProcess www.<vhost> user=contractsmgr group=contractsmgr threads=3 display-name=%{GROUP}
-       # WSGIScriptAlias / /var/www/www.<vhost>/contracts/contracts/contracts.wsgi
-       # WSGIProcessGroup www.<vhost>
-       #
-       # DocumentRoot /var/www/www.<vhost>/contracts
-       #
-       # <Directory /var/www/www.<vhost>/contracts>
-       # Options Indexes FollowSymLinks MultiViews
-       # AllowOverride All
-       # Order allow,deny
-       # allow from all
-       # </Directory>
-       #
-       # LogLevel warn
-       # ErrorLog /var/www/www.<vhost>/logs/error.log
-       # CustomLog /var/www/www.<vhost>/logs/requests.log combined
-       #
-       #</VirtualHost>
+.. code-block:: apache
+
+    <VirtualHost *:80>
+      ServerName <vhost>.com
+      ServerAlias www.<vhost>.com
+    #  Redirect permanent / https://<vhost>.com/
+      DocumentRoot /var/www/www.<vhost>.com
+      LogLevel warn
+      ErrorLog /var/www/www.<vhost>.com/logs/error.log
+      CustomLog /var/www/www.<vhost>.com/logs/requests.log combined
+
+      <Directory /var/www/www.<vhost>.com>
+        allow from all
+        Options +Indexes
+      </Directory>
+    </VirtualHost>
+
+    #<VirtualHost *:443>
+    #  ServerName <vhost>.com
+    #  ServerAlias www.<vhost>.com
+    #  ServerAdmin lking@pobox.com
+    #  SSLEngine on
+    #  SSLCertificateFile /etc/letsencrypt/live/www.<vhost>.com/fullchain.pem
+    #  SSLCertificateKeyFile /etc/letsencrypt/live/www.<vhost>.com/privkey.pem
+    #  SSLCertificateChainFile /etc/letsencrypt/live/www.<vhost>.com/chain.pem
+    #
+    #  WSGIDaemonProcess www.<vhost>.com user=<vhost>mgr group=<vhost>mgr threads=3 display-name=%{GROUP}
+    #  WSGIScriptAlias / /var/www/www.<vhost>.com/<vhost>/<vhost>/<vhost>.wsgi
+    #  WSGIProcessGroup www.<vhost>.com
+    #
+    #  DocumentRoot /var/www/www.<vhost>.com/<vhost>
+    #
+    #  <Directory /var/www/www.<vhost>.com/<vhost>>
+    #    Options Indexes FollowSymLinks MultiViews
+    #    AllowOverride All
+    #    Order deny,allow
+    #    allow from all
+    #  </Directory>
+    #
+    #  LogLevel warn
+    #  ErrorLog /var/www/www.<vhost>.com/logs/error.log
+    #  CustomLog /var/www/www.<vhost>.com/logs/requests.log combined
+    #
+    #</VirtualHost>
 
     sudo mkdir /var/www/www.<vhost>
     sudo mkdir /var/www/www.<vhost>/logs
@@ -147,3 +159,4 @@ create /etc/httpd/sites-available/<virtualhost>.conf::
 
     sudo a2ensite <virtualhost>
     sudo apachectl restart
+
