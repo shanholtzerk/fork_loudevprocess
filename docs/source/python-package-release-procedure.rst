@@ -9,74 +9,71 @@ release to github
    -  update readme file
 
 -  check if update to setup.py needed (for new scripts - 3 places)
-
 -  pip freeze > requirements.txt
-
 -  commit requirements.txt before the following
 
-   -  git add requirements.txt
+.. code-block:: shell
 
-   -  git commit -m 'package requirements update'
+   git add requirements.txt
+   git commit -m 'package requirements update'
 
 -  update version.py
 
--  <package>\setup.py install
+.. code-block:: shell
+
+    <package>\setup.py install
 
 -  commit change "version x.y.z"
 
-   -  git add <package>/version.py
+.. code-block:: shell
 
-   -  git commit -m 'version x.y.z'
+   git add <package>/version.py
+   git commit -m 'version x.y.z'
 
 -  if branch
 
-   -  merge branch to master
+   -  merge branch to master. see https://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging
 
-      -  git checkout master
+.. code-block:: shell
 
-      -  git merge <branchname>
-
-      -  see
-            https://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging
+      git checkout master
+      git merge <branchname>
 
 -  sync master to github (git push)
-
 -  in branch shell
 
-   -  git tag x.y.z -m 'version x.y.z'
+.. code-block:: shell
 
-   -  git push --tags
+   git tag x.y.z -m 'version x.y.z'
+   git push --tags
 
 -  create documentation
 
-   -  git log --oneline 2.0.10..2.0.11 [lastrelease..thisrelease]
+.. code-block:: shell
+
+   git log --oneline 2.0.10..2.0.11 [lastrelease..thisrelease]
+
+-  create documentation (con'd)
 
    -  on github
 
       -  click <> code
-
       -  click releases
-
       -  click Draft a new release button
-
       -  reformat output from git log above, into release notes
 
--  If branch, delete remote and local versions **[best if you wait to do
-      this until after deploy, if a branch was deployed earlier]**
+-  If branch, delete remote and local versions **[best if you wait to do this until after deploy, if a branch was deployed earlier]**
+
+.. code-block:: shell
 
    -  git push origin --delete <branchname> # delete remote
-
    -  git branch -d <branchname> # delete local
 
-   -  if see the following, try git checkout master at target
+   # -  if see the following, try git checkout master at target
 
-      -  [scoretility@sandbox.scoretility.com] out: Your configuration
-            specifies to merge with the ref '<branchname>'
+      # -  [scoretility@sandbox.scoretility.com] out: Your configuration specifies to merge with the ref '<branchname>'
+      # -  [scoretility@sandbox.scoretility.com] out: from the remote, but no such ref was fetched.
 
-      -  [scoretility@sandbox.scoretility.com] out: from the remote, but
-            no such ref was fetched.
-
-   -  
 
 release to PyPi
 ---------------
@@ -86,13 +83,12 @@ test release with editable install
 
 To test with another package which may be changing
 
--  see https://pip.pypa.io/en/stable/reference/pip_install/ “Editable
-      Installs”
+-  see https://pip.pypa.io/en/stable/reference/pip_install/ "Editable Installs"
 
--  pip uninstall <package>
+.. code-block:: shell
 
--  pip install -e "C:\Users\lking\Documents\Lou's
-      Software\projects\loutilities\loutilities"
+    pip uninstall <package>
+    pip install -e "C:\Users\lking\Documents\Lou's Software\projects\loutilities\loutilities"
 
 release
 ~~~~~~~
@@ -103,6 +99,7 @@ release
 
    -  set version to x.y.z.\ **devn**
 
--  python setup.py install sdist bdist_wheel
+.. code-block:: shell
 
--  twine upload dist/<package>-<version>.\*
+    python setup.py install sdist bdist_wheel
+    twine upload dist/<package>-<version>.\*
