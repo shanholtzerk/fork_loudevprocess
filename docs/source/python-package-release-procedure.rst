@@ -8,8 +8,15 @@ release to github
 
    -  update readme file
 
+.. Padding. See https://github.com/sphinx-doc/sphinx/issues/2258
+
 -  check if update to setup.py needed (for new scripts - 3 places)
--  pip freeze > requirements.txt
+-  freeze requirements
+
+.. code-block:: shell
+
+    pip freeze > requirements.txt
+
 -  commit requirements.txt before the following
 
 .. code-block:: shell
@@ -69,10 +76,11 @@ release to github
    -  git push origin --delete <branchname> # delete remote
    -  git branch -d <branchname> # delete local
 
-   # -  if see the following, try git checkout master at target
+-
+   -  if see the following, try git checkout master at target
 
-      # -  [scoretility@sandbox.scoretility.com] out: Your configuration specifies to merge with the ref '<branchname>'
-      # -  [scoretility@sandbox.scoretility.com] out: from the remote, but no such ref was fetched.
+      -  [scoretility@sandbox.scoretility.com] out: Your configuration specifies to merge with the ref '<branchname>'
+      -  [scoretility@sandbox.scoretility.com] out: from the remote, but no such ref was fetched.
 
 
 release to PyPi
@@ -102,4 +110,30 @@ release
 .. code-block:: shell
 
     python setup.py install sdist bdist_wheel
-    twine upload dist/<package>-<version>.\*
+    twine upload dist/<package>-<version>.*
+    # use pypi password
+
+Initial deploy to server
+--------------------------
+Log into server sudo account
+
+.. code-block:: shell
+
+    ### upload webapp files to target host
+    sudo mkdir /var/www/www.<vhost>.com/<repo-name>
+    cd /var/www/www.<vhost>.com/<repo-name>
+    sudo git clone https://github.com/louking/<repo-name>
+    cd /var/www/www.<vhost>.com
+    sudo chown -R <vhostuser>:<vhostuser> <repo-name>
+
+    ### Create python virtual environment for administrative function
+    cd /var/www/www.<vhost>.com
+    sudo mkdir venv
+    sudo chown -R <vhostuser>:<vhostuser> venv
+    sudo su <vhostuser>
+    cd /var/www/www.<vhost>.com
+    virtualenv venv/
+    cd ~/devhome
+    source /var/www/www.<vhost>.com/venv/bin/activate
+    cd /var/www/www.<vhost>.com/<repo-name>/<repo-name>
+    pip install -r requirements.txt

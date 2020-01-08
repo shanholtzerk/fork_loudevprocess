@@ -10,11 +10,11 @@ loutility development process documentation
    :maxdepth: 2
    :caption: Contents:
 
-   CentOS-LAMP-Server-Create
-   Database-Migration-Handling
-   Linux-User-Account-Creation
-   Linux-Virtual-Host-Setup
-   MySQL-Database-Management
+   centos-lamp-server-create
+   database-migration-handling
+   linux-user-account-creation
+   linux-virtual-host-setup
+   mysql-database-management
    https-support-notes
    python-package-release-procedure
 
