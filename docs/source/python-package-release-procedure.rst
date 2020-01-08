@@ -126,14 +126,13 @@ Log into server sudo account
     cd /var/www/www.<vhost>.com
     sudo chown -R <vhostuser>:<vhostuser> <repo-name>
 
-    ### Create python virtual environment for administrative function
+    ### Create python virtual environment
     cd /var/www/www.<vhost>.com
     sudo mkdir venv
     sudo chown -R <vhostuser>:<vhostuser> venv
     sudo su <vhostuser>
-    cd /var/www/www.<vhost>.com
-    virtualenv venv/
-    cd ~/devhome
-    source /var/www/www.<vhost>.com/venv/bin/activate
+    python3 -m venv venv
+    source venv/bin/activate
+    pip install --upgrade pip
     cd /var/www/www.<vhost>.com/<repo-name>/<repo-name>
     pip install -r requirements.txt

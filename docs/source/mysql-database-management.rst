@@ -32,6 +32,8 @@ use phpMyAdmin to create database
    -  set database name for <project-database> and <project-database-sandbox>
    -  pull down utf8_general_ci
 
+- click Create
+
 Create MySQL Database User
 --------------------------
 

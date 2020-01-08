@@ -117,7 +117,7 @@ Enable VHOST
 
 .. code-block:: shell
 
-    sudo a2ensite \_default
+    sudo a2ensite _default
 
 additional hosts
 
@@ -133,7 +133,7 @@ Set up VHOST SSL
 .. code-block:: shell
 
     sudo certbot --apache certonly -d <vhost>
-    # maybe like sudo certbot --apache certonly -d www.contracts.loutilities.com -d contracts.loutilities.com
+    # maybe like sudo certbot --apache certonly -d www.<vhost>.com -d <vhost>.com
     sudo vim /etc/httpd/sites-available/<vhost>.conf
     #    [uncomment the commented SSL related lines]
     sudo apachectl configtest # verify configuration syntax
@@ -141,58 +141,3 @@ Set up VHOST SSL
     sudo certbot renew --dry-run # verify operation
     sudo vim /etc/cron.d/certbot # run twice daily
     #    0 \*/12 \* \* \* root /usr/bin/certbot renew
-
-Archive [ignore]
-================
-
-in godaddy (or wherever dns is being hosted), make sure <virtualhost> dns entry points to IP address of this server
-
-.. code-block:: shell
-
-    sudo mkdir -p /var/www/<virtualhost>/
-
-first host on server
-
-.. code-block:: shell
-
-   sudo chmod -R 755 /var/www
-   sudo mkdir /etc/httpd/sites-available
-   sudo mkdir /etc/httpd/sites-enabled
-   # add to end of /etc/httpd/conf/httpd.conf
-   #   IncludeOptional sites-enabled/*.conf
-
-create /etc/httpd/sites-available/_default.conf
-
-.. code-block:: apache
-
-   <VirtualHost \*:80>
-   DocumentRoot /var/www/html
-   </VirtualHost>
-
-create /etc/httpd/sites-available/<virtualhost>.conf
-
-.. code-block:: apache
-
-   <VirtualHost \*:80>
-   ServerName <virtualhost>
-   WSGIDaemonProcess <appname> user=<webhostuser> group=<webhostuser> threads=5
-   WSGIScriptAlias / /var/www/<virtualhost>/<appname>/<appname>.wsgi
-   <Directory /var/www/<virtualhost>/<appname> >
-   WSGIProcessGroup rrwebapp
-   WSGIApplicationGroup %{GLOBAL}
-   Order deny,allow
-   Allow from all
-   AllowOverride All
-   </Directory>
-   LogLevel warn
-   ErrorLog /var/www/<virtualhost>/logs/error.log
-   CustomLog /var/www/<virtualhost>/logs/requests.log combined
-   </VirtualHost>
-
-(first host on server) sudo a2ensite \_default
-
-.. code-block:: shell
-
-    sudo a2ensite <virtualhost>
-    sudo apachectl restart
-
