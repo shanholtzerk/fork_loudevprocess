@@ -84,13 +84,16 @@ Create /etc/httpd/sites-available/www.<vhost>.conf
     #  SSLCertificateKeyFile /etc/letsencrypt/live/www.<vhost>.com/privkey.pem
     #  SSLCertificateChainFile /etc/letsencrypt/live/www.<vhost>.com/chain.pem
     #
-    #  WSGIDaemonProcess www.<vhost>.com user=<vhostuser> group=<vhostuser> threads=3 display-name=%{GROUP}
-    #  WSGIScriptAlias / /var/www/www.<vhost>.com/<vhost>/<vhost>/<vhost>.wsgi
-    #  WSGIProcessGroup www.<vhost>.com
+    #  DocumentRoot /var/www/www.<vhost>.com/<repo-name>
     #
-    #  DocumentRoot /var/www/www.<vhost>.com/<vhost>
+    # # wsgi stuff - <wsgi-port> needs to be unique among vhosts
+    #  WSGIScriptReloading On
+    #  ProxyPass / http://<wsgi-proxy-host>.com:<wsgi-port>/
+    #  ProxyPassReverse / http://<wsgi-proxy-host>.com:<wsgi-port>/
+    #  RequestHeader set X-Forwarded-Port 443
+    #  RequestHeader set X-Forwarded-Scheme https
     #
-    #  <Directory /var/www/www.<vhost>.com/<vhost>>
+    #  <Directory /var/www/www.<vhost>.com/<repo-name>>
     #    Options Indexes FollowSymLinks MultiViews
     #    AllowOverride All
     #    Order deny,allow

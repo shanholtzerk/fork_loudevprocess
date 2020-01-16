@@ -18,6 +18,7 @@ loutility development process documentation
    python-package-release-procedure
    https-support-notes
    install-python-3
+   linux-random-procedures
 
 
 Indices and tables

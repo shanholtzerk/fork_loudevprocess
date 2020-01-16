@@ -117,6 +117,8 @@ Initial deploy to server
 --------------------------
 Log into server sudo account
 
+Create server directory structure and virtual environment
+
 .. code-block:: shell
 
     ### upload webapp files to target host
@@ -125,6 +127,8 @@ Log into server sudo account
     sudo git clone https://github.com/louking/<repo-name>
     cd /var/www/www.<vhost>.com
     sudo chown -R <vhostuser>:<vhostuser> <repo-name>
+    sudo mkdir /var/www/www.<vhost>.com/applogs
+    sudo chown -R <vhostuser>:<vhostuser> /var/www/www.<vhost>.com/applogs
 
     ### Create python virtual environment
     cd /var/www/www.<vhost>.com
@@ -133,6 +137,24 @@ Log into server sudo account
     sudo su <vhostuser>
     python3 -m venv venv
     source venv/bin/activate
+    # see https://bugs.python.org/issue21496,
+    # since venv wasn't created from virtualenv, activate_this.py is missing
+    # needs to be present for wsgi application to work
+    cp /home/lking/activate-this/activate_this.py venv/bin
+    sudo chown -R <vhostuser>:apache venv/bin/activate_this.py
     pip install --upgrade pip
     cd /var/www/www.<vhost>.com/<repo-name>/<repo-name>
     pip install -r requirements.txt
+
+Create databases
+
+- see https://loudevprocess.readthedocs.io/en/latest/mysql-database-management.html
+
+Create javascript libraries
+
+.. code-block:: shell
+
+    sudo mkdir /var/www/<vhost>/libs
+    sudo chown <vhostuser>:<vhostuser> /var/www/<vhost>/libs
+
+- copy from development static/js to /var/www/<vhost>/libs/js
