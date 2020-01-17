@@ -56,6 +56,8 @@ For example, <subhost> = routes, <host> = routes.loutilities.com
 Create VHOST
 ------------
 
+The following expects ``mod_wsgi-express`` to be running, see :ref:`set-script-as-service` for details.
+
 Create /etc/httpd/sites-available/www.<vhost>.conf
 
 .. code-block:: apache

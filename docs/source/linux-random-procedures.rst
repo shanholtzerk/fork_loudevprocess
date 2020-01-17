@@ -1,41 +1,60 @@
 Linux - Random Procedures
 ++++++++++++++++++++++++++++++
 
+.. _set-script-as-service:
+
 Set Script as Service
 ----------------------------
 
 See https://www.tecmint.com/create-new-service-units-in-systemd/
 
-Example of wsgi-servers
+Example of ``start-wsgi-server`` usage
 
-``/etc/systemd/system/wsgi-servers.service``
+``/etc/systemd/system/vhost-<servertype>-<servergroup>.service``
+
+where:
+
+    <servertype>
+        one of www, sandbox, beta
+
+    <servergroup>
+        like routetility, contractility
+
+contents
 
 .. code-block:: shell
 
-    [Unit]
-    Description = start wsgi servers which run from
+    Description = start routetility www proxy server
+    Wants = httpd.service
     After = httpd.service
 
     [Service]
-    ExecStart = /root/bin/wsgi-servers
+    ExecStart = /root/bin/start-wsgi-server <project> <servername> <user> <group> <port>
 
     [Install]
     WantedBy = multi-user.target
 
-``/root/bin/wsgi-servers``
+``/root/bin/start-wsgi-server``
 
 .. code-block:: shell
 
     #!/bin/bash
-    source /var/www/www.routes.loutilities.com/venv/bin/activate
-    mod_wsgi-express start-server --server-name proxysvr.loutilities.com --port 8001 --user routesmgr --group routesmgr /var/www/www.routes.loutilities.com/runningroutes/runningroutes/runningroutes.wsgi --working-directory /var/www/www.routes.loutilities.com/runningroutes/runningroutes/
+    if [[ $# -eq 0 ]] ; then
+       echo "usage:"
+       echo "    start-wsgi-server project servername user group port"
+       exit 0
+    fi
+
+    source /var/www/$2/venv/bin/activate
+    mod_wsgi-express start-server --server-name proxysvr.loutilities.com --port $5 --user $3 --group $4 /var/www/$2/$1/$1/$1.wsgi --working-directory /var/www/$2/$1/$1/
     deactivate
+
 
 then
 
 .. code-block:: shell
 
-    sudo systemctl enable wsgi-servers.service
-    sudo systemctl start wsgi-servers.service
+    sudo systemctl enable vhost-<servertype>-<servergroup>.service
+    sudo systemctl start vhost-<servertype>-<servergroup>.service
 
 
