@@ -182,6 +182,8 @@ or
 
 if you need to check out a particular branch. Note <branch> can be a tag, e.g., to downgrade
 
+.. code-block:: shell
+
     fab -H <target-host> deploy --branchname=<branch>
 
 for testing use winscp to load patch files, only to sandbox and possibly beta
