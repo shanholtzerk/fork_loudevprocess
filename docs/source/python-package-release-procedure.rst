@@ -165,8 +165,14 @@ Ongoing Development
 --------------------------
 
 target hosts are
+
 * www.<slug>.loutilities.com
 * sandbox.<slug>.loutilities.com
+
+where
+
+    slug
+        is like routes, contracts, scores, etc
 
 for official releases use fab
 
@@ -187,4 +193,5 @@ if you need to check out a particular branch. Note <branch> can be a tag, e.g., 
     fab -H <target-host> deploy --branchname=<branch>
 
 for testing use winscp to load patch files, only to sandbox and possibly beta
+
 * after testing the patch be sure to git checkout the original file, then use fab for clean upgrade
