@@ -135,16 +135,18 @@ Create server directory structure and virtual environment
     sudo mkdir venv
     sudo chown -R <vhostuser>:<vhostuser> venv
     sudo su <vhostuser>
-    python3 -m venv venv
-    source venv/bin/activate
+    (<vhostuser>> python3 -m venv venv
+    (<vhostuser>) exit
     # see https://bugs.python.org/issue21496,
     # since venv wasn't created from virtualenv, activate_this.py is missing
     # needs to be present for wsgi application to work
-    cp /home/lking/activate-this/activate_this.py venv/bin
+    sudo cp /home/lking/activate-this/activate_this.py venv/bin
     sudo chown -R <vhostuser>:apache venv/bin/activate_this.py
-    pip install --upgrade pip
-    cd /var/www/www.<vhost>.com/<repo-name>/<repo-name>
-    pip install -r requirements.txt
+    sudo su <vhostuser>
+    (<vhostuser>) source venv/bin/activate
+    (<vhostuser>) pip install --upgrade pip
+    (<vhostuser>) cd /var/www/www.<vhost>.com/<repo-name>/<repo-name>
+    (<vhostuser>) pip install -r requirements.txt
 
 Create databases
 
@@ -158,3 +160,29 @@ Create javascript libraries
     sudo chown <vhostuser>:<vhostuser> /var/www/<vhost>/libs
 
 - copy from development static/js to /var/www/<vhost>/libs/js
+
+Ongoing Development
+--------------------------
+
+target hosts are
+* www.<slug>.loutilities.com
+* sandbox.<slug>.loutilities.com
+
+for official releases use fab
+
+.. code-block:: shell
+
+    fab -H <target-host> deploy
+
+or
+
+.. code-block:: shell
+
+    fab -H <target1>,<target2> deploy
+
+if you need to check out a particular branch. Note <branch> can be a tag, e.g., to downgrade
+
+    fab -H <target-host> deploy --branchname=<branch>
+
+for testing use winscp to load patch files, only to sandbox and possibly beta
+* after testing the patch be sure to git checkout the original file, then use fab for clean upgrade
