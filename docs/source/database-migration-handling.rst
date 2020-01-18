@@ -36,33 +36,33 @@ about migrating content.
        cd [directory above the one with alembic.ini]
        alembic -c <project>/alembic.ini revision --autogenerate -m "<comment>"
 
--   update output file to fill new tables and new fields
+    -   update output file to fill new tables and new fields
 
-    -  save changes off repo, in case alembic revision needs to be repeated
+        -  save changes off repo, in case alembic revision needs to be repeated
 
--   upgrade test database to verify changes
+    -   upgrade test database to verify changes
 
-    .. code-block:: shell
+        .. code-block:: shell
 
-       alembic -c <project>/alembic.ini upgrade head
+           alembic -c <project>/alembic.ini upgrade head
 
--   test changes
--   if database model needs additional updates, revert to previous version of database
+    -   test changes
+    -   if database model needs additional updates, revert to previous version of database
 
-    .. code-block:: shell
+        .. code-block:: shell
 
-         alembic -c <project>/alembic.ini downgrade -1
+             alembic -c <project>/alembic.ini downgrade -1
 
-    -   OR
+        -   OR
 
-        -  restore previous backup
-        -  drop added tables
+            -  restore previous backup
+            -  drop added tables
 
--   delete latest alembic conversion file
+    -   delete latest alembic conversion file
 
-    -  before deleting you might want to save this in an editor buffer
+        -  before deleting you might want to save this in an editor buffer
 
--  commit changes to alembic conversion file -m "database conversion for xxx"
+    -  commit changes to alembic conversion file -m "database conversion for xxx"
 
 Export Database from MAMP Server
 ================================
