@@ -40,7 +40,7 @@ about migrating content.
 
     -  save changes off repo, in case alembic revision needs to be repeated
 
--   load production database to verify changes
+-   upgrade test database to verify changes
 
     .. code-block:: shell
 
