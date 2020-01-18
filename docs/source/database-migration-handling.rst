@@ -21,62 +21,56 @@ https://www.julo.ch/blog/alembic-introduction/ and
 https://julo.ch/blog/migrating-content-with-alembic for information
 about migrating content.
 
--  Use latest version of alembic
+-   Use latest version of alembic
 
-   -  pip install -U alembic
-   -  pip freeze > requirements.txt
+    .. code-block:: shell
 
--  Update sqlalchemy model in <project>/<model>.py
+       pip install -U alembic
+       pip freeze > requirements.txt
 
--  Repeat as necessary, from within virtualenv
+-   Update sqlalchemy model in <project>/<model>.py
+-   Repeat as necessary, from within virtualenv
 
-   -  cd [directory above the one with alembic.ini]
+    .. code-block:: shell
 
-   -  alembic -c <project>/alembic.ini revision --autogenerate -m
-         "<comment>"
+       cd [directory above the one with alembic.ini]
+       alembic -c <project>/alembic.ini revision --autogenerate -m "<comment>"
 
-   -  update output file to fill new tables and new fields
+-   update output file to fill new tables and new fields
 
-      -  save changes off repo, in case alembic revision needs to be
-            repeated
+    -  save changes off repo, in case alembic revision needs to be repeated
 
-   -  load production database to verify changes
+-   load production database to verify changes
 
-   -  alembic -c <project>/alembic.ini upgrade head
+    .. code-block:: shell
 
-   -  test changes
+       alembic -c <project>/alembic.ini upgrade head
 
-   -  if database model needs additional updates
+-   test changes
+-   if database model needs additional updates, revert to previous version of database
 
-      -  revert to previous version of database
+    .. code-block:: shell
 
-         -  alembic -c <project>/alembic.ini downgrade -1
+         alembic -c <project>/alembic.ini downgrade -1
 
-         -  OR
+    -   OR
 
-         -  restore previous backup
+        -  restore previous backup
+        -  drop added tables
 
-         -  drop added tables
+-   delete latest alembic conversion file
 
-      -  delete latest alembic conversion file
+    -  before deleting you might want to save this in an editor buffer
 
-         -  you might want to save this in a buffer
-
--  commit changes to alembic conversion file -m "database conversion for
-      xxx"
+-  commit changes to alembic conversion file -m "database conversion for xxx"
 
 Export Database from MAMP Server
 ================================
 
 -  use phpMyAdmin
-
 -  Select database
-
 -  Save alembic_version
-
 -  Click Export
 
    -  custom
-
-   -  check Format-specific options > Object creation options > Add DROP
-         TABLE / VIEW / PROCEDURE / FUNCTION / EVENT / TRIGGER statement
+   -  check Format-specific options > Object creation options > Add DROP TABLE / VIEW / PROCEDURE / FUNCTION / EVENT / TRIGGER statement

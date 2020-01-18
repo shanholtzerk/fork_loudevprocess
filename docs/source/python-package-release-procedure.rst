@@ -110,7 +110,7 @@ release
 .. code-block:: shell
 
     python setup.py install sdist bdist_wheel
-    twine upload dist/<package>-<version>.*
+    twine upload dist/<package>-<version>*.*
     # use pypi password
 
 Initial deploy to server
@@ -173,6 +173,9 @@ where
 
     slug
         is like routes, contracts, scores, etc
+
+.. note::
+    scores targets are initially scoretility.com, sandbox.scoretility.com, beta.scoretility.com
 
 for official releases use fab
 
