@@ -17,8 +17,9 @@ loutility development process documentation
    database-migration-handling
    python-package-release-procedure
    https-support-notes
-   install-python-3
+   python-3
    linux-random-procedures
+   patterns
 
 
 Indices and tables

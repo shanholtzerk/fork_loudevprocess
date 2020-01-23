@@ -198,3 +198,8 @@ if you need to check out a particular branch. Note <branch> can be a tag, e.g., 
 for testing use winscp to load patch files, only to sandbox and possibly beta
 
 * after testing the patch be sure to git checkout the original file, then use fab for clean upgrade
+
+PyCharm Licencing
+------------------
+
+see https://sales.jetbrains.com/hc/en-gb/articles/207739199-Distributing-Commercial-Licenses

@@ -8,9 +8,31 @@ Set Script as Service
 
 See https://www.tecmint.com/create-new-service-units-in-systemd/
 
-Example of ``start-wsgi-server`` usage
+``/root/bin/init-mod_wsgi-express``
 
-``/etc/systemd/system/vhost-<servertype>-<servergroup>.service``
+.. code-block:: shell
+
+    #!/bin/bash
+    if [[ $# -lt 5 ]] ; then
+       echo "usage:"
+       echo "    init-mod_wsgi-express project servername user group port"
+       exit 0
+    fi
+
+    source /var/www/$2/venv/bin/activate
+    mod_wsgi-express setup-server --server-name proxysvr.loutilities.com --port $5 --user $3 --group $4 /var/www/$2/$1/$1/$1.wsgi --working-directory /var/www/$2/$1/$1/ --server-root /etc/mod_wsgi-express/$2
+    deactivate
+
+
+Example of ``init-mod_wsgi-express`` usage:
+
+Run the following to set up the server
+
+    .. code-block:: shell
+
+        sudo /root/bin/init-mod_wsgi-express runningroutes sandbox.routes.loutilities.com routesmgr routesmgr 8002
+
+Create the service file ``/etc/systemd/system/vhost-<servertype>-<servergroup>.service``
 
 where:
 
@@ -24,30 +46,18 @@ contents
 
 .. code-block:: shell
 
-    Description = start routetility www proxy server
+    [Unit]
+    Description = start routetility sandbox proxy server
     Wants = httpd.service
     After = httpd.service
 
     [Service]
-    ExecStart = /root/bin/start-wsgi-server <project> <servername> <user> <group> <port>
+    Type = forking
+    ExecStart = /etc/mod_wsgi-express/sandbox.routes.loutilities.com/apachectl start
+    ExecStop = /etc/mod_wsgi-express/sandbox.routes.loutilities.com/apachectl stop
 
     [Install]
     WantedBy = multi-user.target
-
-``/root/bin/start-wsgi-server``
-
-.. code-block:: shell
-
-    #!/bin/bash
-    if [[ $# -eq 0 ]] ; then
-       echo "usage:"
-       echo "    start-wsgi-server project servername user group port"
-       exit 0
-    fi
-
-    source /var/www/$2/venv/bin/activate
-    mod_wsgi-express start-server --server-name proxysvr.loutilities.com --port $5 --user $3 --group $4 /var/www/$2/$1/$1/$1.wsgi --working-directory /var/www/$2/$1/$1/
-    deactivate
 
 
 then
