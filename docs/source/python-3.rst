@@ -17,6 +17,43 @@ See https://janikarhunen.fi/how-to-install-python-3-6-1-on-centos-7
     source venv/bin/activate
     pip install --upgrade pip
 
+Convert production project from python 2 to python 3
+=======================================================
+
+.. note::
+
+    python3 can't ``pip install pywin32`` on linux. ``pywin32`` must be removed from ``requirements.txt`` file before
+    ``fab ... deploy``
+
+Add the following code to <project>.wsgi file to support the python3 proxy handler
+
+.. code-block:: python
+
+    # see https://flask.palletsprojects.com/en/1.1.x/deploying/wsgi-standalone/#deploying-proxy-setups
+    from werkzeug.middleware.proxy_fix import ProxyFix
+    application.wsgi_app = ProxyFix(application.wsgi_app, x_proto=1, x_host=1)
+
+
+Convert venv to python3
+
+.. code-block:: shell
+
+    cd /var/www/<vhost>
+    sudo rm -Rf venv
+    sudo mkdir venv
+    sudo chown <vhostuser>:<vhostuser> venv
+    sudo su <vhostuser>
+    (<vhostuser>) python3 -m venv venv
+    (<vhostuser>) exit
+    sudo cp /home/lking/activate-this/activate_this.py venv/bin
+    sudo chown -R <vhostuser>:apache venv/bin/activate_this.py
+    sudo su <vhostuser>
+    (<vhostuser>) source venv/bin/activate
+    (<vhostuser>/<vhost>/venv) pip install --upgrade pip
+    (development) fab -H <vhost> deploy
+
+Create python3 service - see :ref:`set-script-as-service`
+
 Install on Windows
 --------------------
 
@@ -31,8 +68,8 @@ See https://realpython.com/installing-python/#windows
 
 - click **Install Now**
 
-Convert python 2 to python 3
------------------------------------
+Convert development project from python 2 to python 3
+=======================================================
 
 *   conversion -
 
