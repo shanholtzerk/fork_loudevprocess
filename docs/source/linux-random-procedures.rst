@@ -26,18 +26,23 @@ See https://www.tecmint.com/create-new-service-units-in-systemd/
 
 Example of ``init-mod_wsgi-express`` usage:
 
-Run the following to set up the server
+Run the following to set up the server. Choose port by reviewing and updating ``/root/bin/mod_wsgi-express-readme.txt``
 
     .. code-block:: shell
 
-        sudo /root/bin/init-mod_wsgi-express runningroutes sandbox.routes.loutilities.com routesmgr routesmgr 8002
+        sudo /root/bin/init-mod_wsgi-express <repo-name> <vhost> <vhostuser> <vhostuser> <port>
+
+    .. note::
+
+        can these be in a single script file for all of the servers? what will happen if servers are set up while
+        their services are running? This would replace the ``/root/bin/mod_wsgi-express-readme.txt`` file
 
 Create the service file ``/etc/systemd/system/vhost-<servertype>-<servergroup>.service``
 
 where:
 
     <servertype>
-        one of www, sandbox, beta
+        one of www, sandbox, beta [beta is being deprecated]
 
     <servergroup>
         like routetility, contractility
@@ -47,14 +52,14 @@ contents
 .. code-block:: shell
 
     [Unit]
-    Description = start routetility sandbox proxy server
+    Description = start <servergroup> <servertype> proxy server
     Wants = httpd.service
     After = httpd.service
 
     [Service]
     Type = forking
-    ExecStart = /etc/mod_wsgi-express/sandbox.routes.loutilities.com/apachectl start
-    ExecStop = /etc/mod_wsgi-express/sandbox.routes.loutilities.com/apachectl stop
+    ExecStart = /etc/mod_wsgi-express/<vhost>/apachectl start
+    ExecStop = /etc/mod_wsgi-express/<vhost>/apachectl stop
 
     [Install]
     WantedBy = multi-user.target
@@ -67,4 +72,5 @@ then
     sudo systemctl enable vhost-<servertype>-<servergroup>.service
     sudo systemctl start vhost-<servertype>-<servergroup>.service
 
+finally, update vhost apache conf file per :ref:`create-vhost`. This is the last step to reduce downtime
 

@@ -53,6 +53,8 @@ May need to create the following records in DNS server.
 
 For example, <subhost> = routes, <host> = routes.loutilities.com
 
+.. _create-vhost:
+
 Create VHOST
 ------------
 
@@ -128,7 +130,7 @@ additional hosts
 
 .. code-block:: shell
 
-    sudo a2ensite <virtualhost>
+    sudo a2ensite <vhost>
     sudo apachectl configtest # verify syntax before using
     sudo apachectl restart
 
