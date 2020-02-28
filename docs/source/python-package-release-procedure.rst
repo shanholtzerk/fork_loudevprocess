@@ -76,11 +76,32 @@ release to github
    -  git push origin --delete <branchname> # delete remote
    -  git branch -d <branchname> # delete local
 
--
-   -  if see the following, try git checkout master at target
+-  if see the following, try git checkout master at target
 
       -  [scoretility@sandbox.scoretility.com] out: Your configuration specifies to merge with the ref '<branchname>'
       -  [scoretility@sandbox.scoretility.com] out: from the remote, but no such ref was fetched.
+
+
+sync your fork
+----------------
+
+If you have a :term:`fork` of the :term:`upstream` :term:`repo <repository>`, you'll need to sync that :term:`fork`
+periodically.
+
+-   see https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-fork
+-   using PyCharm
+
+    -   checkout master [if not already checked out -- see lower right of PyCharm project view]
+    -   VCS > Git > Rebase my GitHub fork > upstream [you'll need to log in to github the first time you do this]
+
+        -   if there are merge conflicts, decide on whether to accept yours, accept theirs, or merge
+
+    -   VCS > Git > Merge Changes... > remotes/upstream/master [merges :term:`upstream`/master into local master branch]
+    -   VCS > Git > Push... [pushes local master branch to fork (:term:`origin`)]
+
+
+
+
 
 
 release to PyPi

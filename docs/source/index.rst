@@ -20,6 +20,7 @@ loutility development process documentation
    python-3
    linux-random-procedures
    patterns
+   definitions
 
 
 Indices and tables
