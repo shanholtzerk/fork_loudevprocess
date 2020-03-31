@@ -220,6 +220,13 @@ for testing use winscp to load patch files, only to sandbox and possibly beta
 
 * after testing the patch be sure to git checkout the original file, then use fab for clean upgrade
 
+after deployment, python 3.x packages require restart of their service, e.g.,
+
+.. code-block:: shell
+
+    sudo systemctl restart vhost-contractility-www.service
+    sudo systemctl restart vhost-contractility-sandbox.service
+
 PyCharm Licencing
 ------------------
 

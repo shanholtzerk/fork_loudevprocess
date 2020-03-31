@@ -81,3 +81,11 @@ Restore
 
     mysql -h localhost -u [user] -p [database] < file.sql
     # enter [user] password
+
+Use phpmyadmin to restore database
+
+* select database to be restored
+* click Import
+* choose file (.sql or can be gzipped)
+* go
+
