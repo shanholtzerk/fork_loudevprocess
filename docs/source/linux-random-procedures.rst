@@ -37,15 +37,15 @@ Run the following to set up the server. Choose port by reviewing and updating ``
         can these be in a single script file for all of the servers? what will happen if servers are set up while
         their services are running? This would replace the ``/root/bin/mod_wsgi-express-readme.txt`` file
 
-Create the service file ``/etc/systemd/system/vhost-<servertype>-<servergroup>.service``
+Create the service file ``/etc/systemd/system/vhost-<servergroup>-<servertype>.service``
 
 where:
 
-    <servertype>
-        one of www, sandbox, beta [beta is being deprecated]
-
     <servergroup>
         like routetility, contractility
+
+    <servertype>
+        one of www, sandbox, beta [beta is being deprecated]
 
 contents
 

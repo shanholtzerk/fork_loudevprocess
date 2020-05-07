@@ -143,13 +143,15 @@ Create server directory structure and virtual environment
 .. code-block:: shell
 
     ### upload webapp files to target host
-    sudo mkdir /var/www/www.<vhost>.com/<repo-name>
+    sudo mkdir -p /var/www/www.<vhost>.com/<repo-name>
     cd /var/www/www.<vhost>.com/<repo-name>
     sudo git clone https://github.com/louking/<repo-name>
     cd /var/www/www.<vhost>.com
     sudo chown -R <vhostuser>:<vhostuser> <repo-name>
     sudo mkdir /var/www/www.<vhost>.com/applogs
     sudo chown -R <vhostuser>:<vhostuser> /var/www/www.<vhost>.com/applogs
+    sudo mkdir /var/www/www.<vhost>.com/<repo-name>/<repo-name>/config
+    sudo chown -R <vhostuser>:<vhostuser> /var/www/www.<vhost>.com/<repo-name>/<repo-name>/config
 
     ### Create python virtual environment
     cd /var/www/www.<vhost>.com
@@ -199,6 +201,9 @@ where
     scores targets are initially scoretility.com, sandbox.scoretility.com, beta.scoretility.com
 
 for official releases use fab
+
+.. note::
+    may need to copy/adjust fabric.json from another project
 
 .. code-block:: shell
 

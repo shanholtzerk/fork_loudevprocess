@@ -12,9 +12,22 @@ Create user
 
     sudo adduser <vhostuser>
     sudo passwd <vhostuser>
+
+Make sure user's history time is saved
+
+.. code-block:: shell
+
     su - <vhostuser>
     # - update <vhostuser>'s .bashrc (puts time in history output)
     # -  export HISTTIMEFORMAT="%Y-%m-%d %H:%M "
+
+.. note::
+    need to log out / log in for the history format change to take affect
+
+Enable putty key access
+
+.. code-block:: shell
+
     mkdir .ssh
     chmod 700 .ssh
     touch .ssh/authorized_keys
@@ -51,7 +64,7 @@ May need to create the following records in DNS server.
 | CNAME           | sandbox.<subhost>  | <subhost>.<host>   |
 +-----------------+--------------------+--------------------+
 
-For example, <subhost> = routes, <host> = routes.loutilities.com
+For example, <subhost> = routes, <host> = loutilities.com
 
 .. _create-vhost:
 
