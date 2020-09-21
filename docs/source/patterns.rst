@@ -320,8 +320,32 @@ Create a spoofing object
             for key in kwargs:
                 setattr(self, key, kwargs[key])
 
-Override open to use spoofing object to create self.rows. Note self.setid() creates composite id for tracking
-multiple database records.
+The methods defined below are new or override methods derived from loutilities.tables.CrudApi.
+
+Define new methods to set/get ids in correct format. self.setid() creates composite id for tracking
+multiple database records. self.getids() splits out composite id into constituent
+record ids.
+
+.. code-block:: python
+
+    def setid(self, userid, taskid):
+        """
+        return combined userid, taskid
+        :param userid: id for each LocalUser entry
+        :param taskid: id for each Task entry
+        :return: id
+        """
+        return ';'.join([str(userid), str(taskid)])
+
+    def getids(self, id):
+        """
+        return split of id into local user id, task id
+        :param id: id for each  entry
+        :return: (localuserid, taskid)
+        """
+        return tuple([int(usertask) for usertask in id.split(';')])
+
+Override open to use spoofing object to create self.rows.
 
 .. code-block:: python
 
@@ -350,8 +374,7 @@ multiple database records.
 
         self.rows = iter(tasksmembers)
 
-Manually handle the row update by overriding updaterow. Note self.getids() splits out composite id into constituent
-parts.
+Manually handle the row update by overriding updaterow.
 
 .. code-block:: python
 
