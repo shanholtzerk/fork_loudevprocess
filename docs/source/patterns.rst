@@ -194,3 +194,182 @@ For information on optimistic concurrency control see
 .. code-block:: python
 
     'version_id_col' : 'version_id',
+
+show popup after edit update
+---------------------------------------------------
+
+In javascript which runs before the datatable is created, make a function which can be executed by editor which
+creates a postEdit event handler. The postEdit event handler uses jquery ui dialog for the popup.
+
+.. code-block:: js
+
+    function meeting_sendreminders(ed) {
+        fn = function() {
+            var that = this;
+            that.processing(true);
+            ed.one('postEdit', function(e, json, data, id) {
+                that.processing(false);
+                var message = $('<div>', {title: 'Generated reminders'});
+                var popuphtml = $('<ul>').appendTo(message);
+                if (json.newinvites.length > 0) {
+                    var newinvites = $('<p>', {html: 'new invites sent to'}).appendTo(popuphtml);
+                    var newinvitesul = $('<ul>').appendTo(newinvites);
+                    for (var i=0; i<json.newinvites.length; i++) {
+                        $('<li>', {html: json.newinvites[i]}).appendTo(newinvitesul);
+                    }
+                }
+                if (json.reminded.length > 0) {
+                    var reminders = $('<p>', {html: 'reminders sent to'}).appendTo(popuphtml);
+                    var remindersul = $('<ul>').appendTo(reminders);
+                    for (var i=0; i<json.reminded.length; i++) {
+                        $('<li>', {html: json.reminded[i]}).appendTo(remindersul);
+                    }
+                }
+                message.dialog({
+                    modal: true,
+                    minWidth: 200,
+                    height: 'auto',
+                    buttons: {
+                        OK: function() {
+                            $(this).dialog('close');
+                        }
+                    }
+                });
+            })
+            // selected rows, false means don't display form
+            ed.edit({selected:true}, false).submit();
+        }
+        return fn;
+    }
+
+In the put function, create any self.responsekeys which are required by the postEdit handler. In this example,
+self.responsekeysp['reminded'] and self.responsekeysp['newinvites'] are added, for multiple ids which may be
+selected.
+
+.. code-block:: python
+
+    @_editormethod(checkaction='edit', formrequest=True)
+    def put(self, thisid):
+        # allow multirow editing, i.e., to send emails for multiple selected positions
+        theseids = thisid.split(',')
+        positions = []
+        self._responsedata = []
+        users = set()
+        for id in theseids:
+            # try to coerce to int, but ok if not
+            try:
+                id = int(id)
+            except ValueError:
+                pass
+
+            # these just satisfy editor -- is this needed?
+            thisdata = self._data[id]
+            thisrow = self.updaterow(id, thisdata)
+            self._responsedata += [thisrow]
+
+            # collect users which hold this position, and positions which have been selected
+            position = Position.query.filter_by(id=id).one()
+            users |= set(position.users)
+            positions.append(position)
+
+        # send reminder email to each user
+        self.responsekeys = {'reminded': [], 'newinvites': []}
+        for user in users:
+            generatereminder(request.args['meeting_id'], user, positions)
+            reminder = generatereminder(request.args['meeting_id'], user, positions)
+            if reminder:
+                self.responsekeys['reminded'].append('{}'.format(user.name))
+            else:
+                self.responsekeys['newinvites'].append('{}'.format(user.name))
+
+        # do this at the end to pick up invite.lastreminded (updated in generatereminder())
+        # note need to flush to pick up any new invites
+        db.session.flush()
+        for id in theseids:
+            thisdata = self._data[id]
+            thisrow = self.updaterow(id, thisdata)
+            self._responsedata += [thisrow]
+
+
+When instantiating the instance subclassed from CrudApi, link the button to the javascript function from above
+
+.. code-block:: python
+
+    buttons=[
+        {
+            'extend':'edit',
+            'editor': {'eval':'editor'},
+            'text': 'Send Reminders',
+            'action': {'eval':'meeting_sendreminders(editor)'}
+        },
+        ...
+    ],
+
+spoof id for database behavior on composite records
+-----------------------------------------------------
+
+Create a spoofing object
+
+.. code-block:: python
+
+    class TaskMember():
+        '''
+        allows creation of "taskmember" object to simulate database behavior
+        '''
+        def __init__(self, **kwargs):
+            for key in kwargs:
+                setattr(self, key, kwargs[key])
+
+Override open to use spoofing object to create self.rows. Note self.setid() creates composite id for tracking
+multiple database records.
+
+.. code-block:: python
+
+    def open(self):
+        # retrieve member data from localusers
+        members = []
+        for localuser in iter(localusers):
+            members.append({'localuser':localuser, 'member': User.query.filter_by(id=localuser.user_id).one()})
+
+        tasksmembers = []
+        for member in members:
+            # collect all the tasks which are referenced by positions and taskgroups for this member
+            tasks = get_member_tasks(member['localuser'])
+
+            # create/add taskmember to list for all tasks
+            for task in iter(tasks):
+                membertaskid = self.setid(member['localuser'].id, task.id)
+                taskmember = TaskMember(
+                    id=membertaskid,
+                    task=task, task_taskgroups=task.taskgroups,
+                    member = member['member'],
+                    member_positions = member['localuser'].positions,
+                )
+
+            tasksmembers.append(taskmember)
+
+        self.rows = iter(tasksmembers)
+
+Manually handle the row update by overriding updaterow. Note self.getids() splits out composite id into constituent
+parts.
+
+.. code-block:: python
+
+    def updaterow(self, thisid, formdata):
+        memberid, taskid = self.getids(thisid)
+        luser = LocalUser.query.filter_by(id=memberid).one()
+        task = Task.query.filter_by(id=taskid).one()
+
+        # make appropriate updates to the constituent records
+
+        member = {'localuser': luser, 'member': User.query.filter_by(id=luser.user_id).one()}
+
+        taskmember = TaskMember(
+            id=thisid,
+            task=task, task_taskgroups=task.taskgroups,
+            member=member['member'],
+            member_positions = member['localuser'].positions,
+        )
+
+        return self.dte.get_response_data(taskmember)
+
