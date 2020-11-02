@@ -200,6 +200,9 @@ where
 .. note::
     scores targets are initially scoretility.com, sandbox.scoretility.com, beta.scoretility.com
 
+.. warning::
+    before releasing to production, test using ASSETS_DEBUG: False
+
 for official releases use fab
 
 .. note::

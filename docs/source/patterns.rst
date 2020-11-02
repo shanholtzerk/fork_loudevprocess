@@ -9,7 +9,7 @@ Within ``assets``
 
 *   include these js files
 
-    .. code-block:: python
+    .. code-block:: python3
 
         'datatables.js',  # from loutilities
         'datatables.dataRender.ellipsis.js',  # from loutilities
@@ -17,7 +17,7 @@ Within ``assets``
 
 *   include these css files
 
-    .. code-block:: python
+    .. code-block:: python3
 
         'datatables.css',  # from loutilities
         'editor.css',  # from loutilities
@@ -27,7 +27,7 @@ Within ``assets``
 To use the ``tables-assets`` files, add this snippet to project ``__init__.py`` within ``create_app``, after ``app``
 is created.
 
-.. code-block:: python
+.. code-block:: python3
 
     from flask import send_from_directory
     from jinja2 import ChoiceLoader, PackageLoader
@@ -66,7 +66,7 @@ loutilities.user single sign-on
 
 application ``model.py`` (this or similar)
 
-.. code-block:: python
+.. code-block:: python3
 
     from loutilities.user.model import db, ManageLocalTables
 
@@ -94,7 +94,7 @@ application ``model.py`` (this or similar)
 
 application ``views.userrole.userrole.py``
 
-.. code-block:: python
+.. code-block:: python3
 
     from loutilities.user.views.userrole import UserView, InterestView
     from ...model import update_local_tables
@@ -114,13 +114,13 @@ application ``views.userrole.userrole.py``
 
 application ``views.userrole.__init__.py``
 
-.. code-block:: python
+.. code-block:: python3
 
     from . import userrole
 
 Within application ``__init__.py``
 
-.. code-block:: python
+.. code-block:: python3
 
     # activate views
     from .views import userrole as userroleviews
@@ -130,7 +130,7 @@ Within application ``__init__.py``
 interests task with single sign-on
 ---------------------------------------
 
-.. code-block:: python
+.. code-block:: python3
 
     # interest_id must be included
     tasktype_dbattrs = 'id,interest_id,tasktype,description'.split(',')
@@ -182,7 +182,7 @@ For information on optimistic concurrency control see
 
 ``model.py`` must have the following for each table which uses concurrency control
 
-.. code-block:: python
+.. code-block:: python3
 
     version_id = Column(Integer, nullable=False, default=1)
     __mapper_args__ = {
@@ -191,7 +191,7 @@ For information on optimistic concurrency control see
 
 ``loutilities.tables.DbCrudApi`` instantiation must have ``version_id_col``, e.g.,
 
-.. code-block:: python
+.. code-block:: python3
 
     'version_id_col' : 'version_id',
 
@@ -246,7 +246,7 @@ In the put function, create any self.responsekeys which are required by the post
 self.responsekeysp['reminded'] and self.responsekeysp['newinvites'] are added, for multiple ids which may be
 selected.
 
-.. code-block:: python
+.. code-block:: python3
 
     @_editormethod(checkaction='edit', formrequest=True)
     def put(self, thisid):
@@ -293,7 +293,7 @@ selected.
 
 When instantiating the instance subclassed from CrudApi, link the button to the javascript function from above
 
-.. code-block:: python
+.. code-block:: python3
 
     buttons=[
         {
@@ -310,7 +310,7 @@ spoof id for database behavior on composite records
 
 Create a spoofing object
 
-.. code-block:: python
+.. code-block:: python3
 
     class TaskMember():
         '''
@@ -326,7 +326,7 @@ Define new methods to set/get ids in correct format. self.setid() creates compos
 multiple database records. self.getids() splits out composite id into constituent
 record ids.
 
-.. code-block:: python
+.. code-block:: python3
 
     def setid(self, userid, taskid):
         """
@@ -347,12 +347,12 @@ record ids.
 
 Override open to use spoofing object to create self.rows.
 
-.. code-block:: python
+.. code-block:: python3
 
     def open(self):
         # retrieve member data from localusers
         members = []
-        for localuser in iter(localusers):
+        for localuser in LocalUser.query.filter_by(interest=locinterest).all():
             members.append({'localuser':localuser, 'member': User.query.filter_by(id=localuser.user_id).one()})
 
         tasksmembers = []
@@ -376,7 +376,7 @@ Override open to use spoofing object to create self.rows.
 
 Manually handle the row update by overriding updaterow.
 
-.. code-block:: python
+.. code-block:: python3
 
     def updaterow(self, thisid, formdata):
         memberid, taskid = self.getids(thisid)
@@ -396,3 +396,62 @@ Manually handle the row update by overriding updaterow.
 
         return self.dte.get_response_data(taskmember)
 
+button icon for table action on row
+-----------------------------------------------------
+
+add button to table, but keep it hidden. make sure it has a name (in CrudApi instantiation)
+
+.. code-block:: python3
+
+    buttons = [
+            :
+        {'extend': 'editChildRowRefresh',
+         'name': 'editRefresh',
+         'editor':{'eval': 'editor'},
+         'className': 'Hidden',
+         },
+
+                OR
+
+        {'extend': 'edit',
+         'name': 'view-status',
+         'text': 'My Status Report',
+         'action': {'eval': 'mystatus_statusreport'},
+         'className': 'Hidden',
+        },
+
+create a column for the button (in CrudApi instantiation)
+
+.. code-block:: python3
+
+    clientcolumns=[
+            :
+        {'data': '',  # needs to be '' else get exception converting options from meetings render_template
+         # TypeError: '<' not supported between instances of 'str' and 'NoneType'
+         'name': 'edit-control',
+         'className': 'edit-control shrink-to-fit',
+         'orderable': False,
+         'defaultContent': '',
+         'label': '',
+         'type': 'hidden',  # only affects editor modal
+         'title': 'Edit',
+         'render': {'eval': 'render_icon("fas fa-edit")'},
+         },
+
+trigger button when icon clicked (javascript after datatables created)
+
+ .. code-block:: javascript
+
+    // if edit-control clicked, trigger button
+    onclick_trigger(_dt_table, 'td.edit-control', 'editRefresh');
+
+use css to style icon
+
+.. code-block:: css
+
+    /* edit selection/control management */
+    td.edit-control {
+        text-align: center;
+        cursor: pointer;
+        color: forestgreen;
+    }
