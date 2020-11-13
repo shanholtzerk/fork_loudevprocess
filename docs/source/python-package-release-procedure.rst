@@ -134,6 +134,12 @@ release
     twine upload dist/<package>-<version>*.*
     # use pypi password
 
+- then force install
+
+.. code-block:: shell
+
+    pip install --force-reinstall <package>
+
 Initial deploy to server
 --------------------------
 Log into server sudo account
@@ -217,6 +223,12 @@ or
 .. code-block:: shell
 
     fab -H <target1>,<target2> deploy
+
+then on target system
+
+.. code-block:: shell
+
+    sudo systemctl restart vhost-membertility-www.service #for example
 
 if you need to check out a particular branch. Note <branch> can be a tag, e.g., to downgrade
 

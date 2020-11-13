@@ -455,3 +455,261 @@ use css to style icon
         cursor: pointer;
         color: forestgreen;
     }
+
+standalone Editor popup for datatables button handler
+-------------------------------------------------------
+
+in beforedatatables.js make declaration for standalone editor and create button handling function
+
+.. code-block:: javascript
+
+    var meeting_invites_editor;
+
+    function meeting_sendinvites(url) {
+        fn = function (e, dt, node, config) {
+            var that = this;
+
+            // update the url parameter for the create view
+            var editorajax = meeting_invites_editor.ajax() || {};
+            editorajax.url = url + '?' + setParams(allUrlParams());
+            meeting_invites_editor.ajax(editorajax);
+
+            // Ajax request to refresh the data
+            $.ajax( {
+                // application specific: my application has different urls for different methods
+                url: url + '?' + setParams(allUrlParams()),
+                type: 'get',
+                dataType: 'json',
+                success: function ( json ) {
+                    // if error, display message - application specific
+                    if (json.error) {
+                        // this is application specific
+                        // not sure if there's a generic way to find the current editor instance
+                        meeting_invites_editor.error('ERROR retrieving row from server:<br>' + json.error);
+
+                    } else {
+                        // create table from json response. for some reason need dummy div element
+                        // else html doesn't have <table> in it
+                        var invitestbl = $('<table>')
+                        var invites = $('<div>').append(invitestbl)
+                        var $th = $('<tr>').append(
+                            $('<th>').text('name').attr('align', 'left'),
+                            $('<th>').text('email').attr('align', 'left'),
+                            $('<th>').text('state').attr('align', 'left'),
+                        ).appendTo(invitestbl);
+                        $.each(json.invitestates, function(i, invite) {
+                            var $tr = $('<tr>').append(
+                                $('<td>').text(invite.name),
+                                $('<td>').text(invite.email),
+                                $('<td>').text(invite.state),
+                            ).appendTo(invitestbl);
+                        });
+
+                        meeting_invites_editor
+                            .title('Send Invitations')
+                            .edit(null, false)
+                            // no editing id, and don't show immediately
+                            .set('invitestates', invites.html())
+                            .set('from_email', json.from_email)
+                            .set('subject', json.subject)
+                            .set('message', json.message)
+                            .set('options', json.options)
+                            .open();
+                    }
+                }
+            } );
+        }
+        return fn;
+    }
+
+in afterdatables.js, create standalone editor
+
+.. code-block:: javascript
+
+        // https://stackoverflow.com/questions/19237235/jquery-button-click-event-not-firing/19237302
+        meeting_invites_editor = new $.fn.dataTable.Editor({
+            fields: [
+                {name: 'invitestates', data: 'invitestates', label: 'Invitation Status', type: 'display',
+                    className: 'field_req full block'},
+                {name: 'subject', data: 'subject', label: 'Subject', type: 'text', className: 'field_req full block'},
+                {name: 'message', data: 'message', label: 'Message', type: 'ckeditorClassic',
+                    className: 'field_req full block'},
+                {name: 'from_email', data: 'from_email', label: 'From', type: 'text', className: 'field_req full block'},
+                {name: 'options', data: 'options', label: '', type: 'checkbox', className: 'full block',
+                    options: [
+                        {label: 'Request Status Report', value: 'statusreport'},
+                        {label: 'Show Action Items', value: 'actionitems'},
+                    ],
+                    separator: ',',
+                }
+            ],
+        });
+
+        // buttons needs to be set up outside of ajax call (beforedatatables.js meeting_sendinvites()
+        // else the button action doesn't fire (see https://stackoverflow.com/a/19237302/799921 for ajax hint)
+        meeting_invites_editor
+            .buttons([
+                {
+                    'text': 'Send Invitations',
+                    'action': function () {
+                        this.submit( null, null, function(data){
+                            var that = this;
+                        });
+                    }
+                },
+                {
+                    'text': 'Cancel',
+                    'action': function() {
+                        this.close();
+                    }
+                }
+            ])
+
+        // need to redraw after invite submission in case new Attendees row added to table
+        meeting_invites_editor.on('submitComplete closed', function(e) {
+            _dt_table.draw();
+        });
+
+in view that will display standalone editor form, create div with editor fields
+
+.. code-block:: python
+
+    def meeting_pretablehtml():
+        pretablehtml = div()
+        with pretablehtml:
+            # make dom repository for Editor send invites standalone form
+            with div(style='display: none;'):
+                dd(**{'data-editor-field': 'invitestates'})
+                dd(**{'data-editor-field': 'from_email'})
+                dd(**{'data-editor-field': 'subject'})
+                dd(**{'data-editor-field': 'message'})
+                dd(**{'data-editor-field': 'options'})
+
+        return pretablehtml.render()
+
+in CrudApi descended class, declare button
+
+.. code-block:: python
+
+    buttons=lambda: [
+        # 'editor' gets eval'd to editor instance
+        {'text': 'Send Invites',
+         'name': 'send-invites',
+         'editor': {'eval': 'meeting_invites_editor'},
+         'url': url_for('admin.meetinginvite', interest=g.interest),
+         'action': {
+             'eval': 'meeting_sendinvites("{}")'.format(rest_url_for('admin.meetinginvite',
+                                                                       interest=g.interest))}
+         },
+
+you may need an api to handle button submission, e.g.,
+
+.. code-block:: python
+
+    class MeetingInviteApi(MethodView):
+
+        def __init__(self):
+            self.roles_accepted = [ROLE_SUPER_ADMIN, ROLE_MEETINGS_ADMIN]
+
+        def permission(self):
+            '''
+            determine if current user is permitted to use the view
+            '''
+            # adapted from loutilities.tables.DbCrudApiRolePermissions
+            allowed = False
+
+            # must have meeting_id query arg
+            if request.args.get('meeting_id', False):
+                for role in self.roles_accepted:
+                    if current_user.has_role(role):
+                        allowed = True
+                        break
+
+            return allowed
+
+        def get(self):
+            try:
+                # verify user can write the data, otherwise abort (adapted from loutilities.tables._editormethod)
+                if not self.permission():
+                    db.session.rollback()
+                    cause = 'operation not permitted for user'
+                    return jsonify(error=cause)
+
+                meeting_id = request.args['meeting_id']
+                invitestates, invites = get_invites(meeting_id)
+
+                # set defaults
+                meeting = Meeting.query.filter_by(id=meeting_id).one()
+                from_email = meeting.organizer.email
+                subject = '[{} {}] '.format(meeting.purpose, meeting.date)
+                message = ''
+                # todo: need to tailor when #274 is fixed
+                options = 'statusreport,actionitems'
+
+                # if mail has previously been sent, pick up values used prior
+                email = Email.query.filter_by(meeting_id=meeting.id, type=MEETING_INVITE_EMAIL).one_or_none()
+                if email:
+                    from_email = email.from_email
+                    subject = email.subject
+                    message = email.message
+                    options = email.options
+
+                return jsonify(from_email=from_email, subject=subject, message=message, options=options,
+                               invitestates=invitestates)
+
+            except Exception as e:
+                exc = ''.join(format_exception_only(type(e), e))
+                output_result = {'status': 'fail', 'error': 'exception occurred:\n{}'.format(exc)}
+                # roll back database updates and close transaction
+                db.session.rollback()
+                current_app.logger.error(format_exc())
+                return jsonify(output_result)
+
+        def post(self):
+            try:
+                # verify user can write the data, otherwise abort (adapted from loutilities.tables._editormethod)
+                if not self.permission():
+                    db.session.rollback()
+                    cause = 'operation not permitted for user'
+                    return jsonify(error=cause)
+
+                # there should be one 'id' in this form data, 'keyless'
+                requestdata = get_request_data(request.form)
+                meeting_id = request.args['meeting_id']
+                from_email = requestdata['keyless']['from_email']
+                subject = requestdata['keyless']['subject']
+                message = requestdata['keyless']['message']
+                options = requestdata['keyless']['options']
+
+                email = Email.query.filter_by(meeting_id=meeting_id, type=MEETING_INVITE_EMAIL).one_or_none()
+                if not email:
+                    email = Email(interest=localinterest(), type=MEETING_INVITE_EMAIL, meeting_id=meeting_id)
+                    db.session.add(email)
+
+                # save updates, used by generateinvites()
+                email.from_email = from_email
+                email.subject = subject
+                email.message = message
+                email.options = options
+                db.session.flush()
+
+                agendaitem = generateinvites(meeting_id)
+
+                # use meeting view's dte to get the response data
+                thisrow = meeting.dte.get_response_data(agendaitem)
+                self._responsedata = [thisrow]
+
+                db.session.commit()
+                return jsonify(self._responsedata)
+
+            except Exception as e:
+                exc = ''.join(format_exception_only(type(e), e))
+                output_result = {'status' : 'fail', 'error': 'exception occurred:\n{}'.format(exc)}
+                # roll back database updates and close transaction
+                db.session.rollback()
+                current_app.logger.error(format_exc())
+                return jsonify(output_result)
+
+    bp.add_url_rule('/<interest>/_meetinginvite/rest', view_func=MeetingInviteApi.as_view('meetinginvite'),
+                    methods=['GET', 'POST'])
+
