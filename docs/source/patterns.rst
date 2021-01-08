@@ -713,3 +713,139 @@ you may need an api to handle button submission, e.g.,
     bp.add_url_rule('/<interest>/_meetinginvite/rest', view_func=MeetingInviteApi.as_view('meetinginvite'),
                     methods=['GET', 'POST'])
 
+datatable child row
+---------------------------------
+
+Adding a child row requires a details-control in the first column, used to expand or contract the row. In the
+instantiation of the view
+
+.. code-block:: python
+
+    tableidcontext=lambda row: {
+        'rowid': row['rowid'],
+    },
+    tableidtemplate ='actionitems-{{ rowid }}',
+    clientcolumns=[
+        # 'data' needs to be '' else get exception converting options from meetings render_template
+        # TypeError: '<' not supported between instances of 'str' and 'NoneType' when instantiating with this in child row
+        {'data': '',
+         'name':'details-control',
+         'className': 'details-control shrink-to-fit',
+         'orderable': False,
+         'defaultContent': '',
+         'label': '',
+         'type': 'hidden',  # only affects editor modal
+         'title': '<i class="fa fa-plus-square" aria-hidden="true"></i>',
+         'render': {'eval':'render_plus'},
+         },
+        :
+        ],
+
+The edit button needs to be replaced. This shows the child row edit window underneath the parent row in the table.
+In the instantiation of the view
+
+.. code-block:: python
+
+    buttons=[
+        :
+        'editChildRowRefresh',
+        :
+    ],
+
+define the layout of the child row using nunjunks template
+
+.. code-block:: jinja
+
+    {% extends "child-row-base.njk" %}
+    {% block displayfields %}
+        <div class="DTE_Label">Comments</div>
+        <div class="DTE_Field_Input">{{ comments | safe }}</div>
+    {% endblock %}
+
+without embedded table(s)
+============================
+
+.. code-block:: python
+
+    childrowoptions= {
+        'template': 'actionitem-child-row.njk',
+        'showeditor': True,
+        'group': 'interest',
+        'groupselector': '#metanav-select-interest',
+        'childelementargs': [],
+    },
+
+with embedded table(s)
+=======================
+
+in the instantiation of the view, identify the child row options
+
+.. code-block:: python
+
+    childrowoptions= {
+        'template': 'motion-child-row.njk',
+        'showeditor': True,
+        'group': 'interest',
+        'groupselector': '#metanav-select-interest',
+        'childelementargs': [
+            {'name':'motionvotes', 'type':CHILDROW_TYPE_TABLE, 'table':motionvotes,
+             'tableidtemplate': 'motionvotes-{{ parentid }}',
+             'args':{
+                     'buttons': ['create', 'editRefresh', 'remove'],
+                     'columns': {
+                         'datatable': {
+                             # uses data field as key
+                             'date': {'visible': False}, 'motion': {'visible': False},
+                         },
+                         'editor': {
+                             # uses name field as key
+                             'date': {'type': 'hidden'}, 'motion': {'type': 'hidden'},
+                         },
+                     },
+                     'inline' : {
+                         # uses name field as key; value is used for editor.inline() options
+                         'vote': {'submitOnBlur': True}
+                     },
+                     'updatedtopts': {
+                         'dom': 'frt',
+                         'paging': False,
+                     },
+                 }
+             },
+        ],
+    },
+
+if there are tables in the child row, Editor response data needs tables attribute for each row
+
+.. code-block:: python
+
+    class MotionsView(DbCrudApiInterestsRolePermissions):
+        def postprocessrows(self, rows):
+            for row in rows:
+                context = {
+                    'meeting_id': request.args['meeting_id'],
+                    'agendaitem_id': row['rowid'],
+                }
+                tableidcontext {
+                    'rowid': row['rowid']
+                }
+
+                tablename = 'actionitems'
+                tables = [
+                    {
+                        'name': tablename,
+                        'label': 'Action Items',
+                        'url': rest_url_for('admin.actionitems', interest=g.interest, urlargs=context),
+                        'createfieldvals': context,
+                        'tableid': self.childtables[tablename]['table'].tableid(**tableidcontext)
+                    }]
+
+                row['tables'] = tables
+
+        def editor_method_postcommit(self, form):
+            # this is here in case tables changed during edit action
+            self.postprocessrows(self._responsedata)
+
+        def open(self):
+            super().open()
+            self.postprocessrows(self.output_result['data'])

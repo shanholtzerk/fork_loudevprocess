@@ -91,6 +91,44 @@ about migrating content.
 
     -  commit changes to migration conversion file -m "database conversion for xxx"
 
+Column update during upgrade
+================================
+
+insert after `# ### end Alembic commands ###`
+
+.. code-block:: python
+
+    from sqlalchemy.sql import table, column
+    from datetime import datetime
+
+    # default position.has_status_report to True
+    position = table('position',
+                     column('has_status_report', sa.Boolean()))
+    op.execute(
+        position.update().\
+            values({'has_status_report':op.inline_literal(True)})
+    )
+
+    statusreport = table('statusreport',
+                     column('update_time', sa.DateTime()))
+    now = datetime.now()
+    op.execute(
+        statusreport.update().\
+            values({'update_time':now})
+    )
+
+
+Export Database from MAMP Server
+================================
+
+-  use phpMyAdmin
+-  Select database
+-  Save alembic_version
+-  Click Export
+
+   -  custom
+   -  check Format-specific options > Object creation options > Add DROP TABLE / VIEW / PROCEDURE / FUNCTION / EVENT / TRIGGER statement
+
 Database Migration (bare alembic - early apps)
 ------------------------------------------------
 
@@ -143,13 +181,3 @@ about migrating content.
 
     -  commit changes to alembic conversion file -m "database conversion for xxx"
 
-Export Database from MAMP Server
-================================
-
--  use phpMyAdmin
--  Select database
--  Save alembic_version
--  Click Export
-
-   -  custom
-   -  check Format-specific options > Object creation options > Add DROP TABLE / VIEW / PROCEDURE / FUNCTION / EVENT / TRIGGER statement
