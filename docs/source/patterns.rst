@@ -849,3 +849,128 @@ if there are tables in the child row, Editor response data needs tables attribut
         def open(self):
             super().open()
             self.postprocessrows(self.output_result['data'])
+
+data dependent columns
+---------------------------------
+
+Occasionally it might be useful to determine which columns are included in the view, e.g., based on specifics of the
+request, user roles, etc.
+
+In the view class, add code similar to the following
+
+.. code-block:: python
+
+    def check_superadmin(self, col):
+        '''
+        check if col should be included in display based on user's roles
+
+        :param col: column to check
+        :return: True if column should be included
+        '''
+        rv = True
+        if not current_user.has_role(ROLE_SUPER_ADMIN):
+            supercols = ['interests', 'last_login_at', 'last_login_ip', 'current_login_ip', 'login_count']
+            colname = col['name'].split('.')[0]
+            if colname in supercols:
+                rv = False
+        return rv
+
+    def getdtoptions(self):
+        '''limit columns to those this user is allowed to see'''
+        dtoptions = super().getdtoptions()
+        dtoptions['columns'] = [c for c in dtoptions['columns'] if self.check_superadmin(c)]
+        return dtoptions
+
+    def getedoptions(self):
+        '''limit form fields to those this user is allowed to see'''
+        edoptions = super().getedoptions()
+        edoptions['fields'] = [c for c in edoptions['fields'] if self.check_superadmin(c)]
+        return edoptions
+
+data dependent select options
+---------------------------------
+
+Occasionally it might be useful to determine which select options are included in the select, e.g., based on specifics
+of the request, user roles, etc.
+
+Add a class for managing the select options
+
+.. code-block:: python
+
+    # this can also be based on DteDbOptionsPickerBase, but this example make use of DteDbRelationship functions
+    class RolesPicker(DteDbRelationship):
+        '''
+        pick Roles, but special processing based on ROLE_SUPER_ADMIN, i.e., if not ROLE_SUPER_ADMIN only present
+        roles allowed for this application
+        '''
+
+        def __init__(self, **kwargs):
+            # the args dict has default values for arguments added by this derived class
+            # caller supplied keyword args are used to update these
+            # all arguments are made into attributes for self by the inherited class
+            args = dict(
+                tablemodel=User,
+                fieldmodel=Role,
+                labelfield='name',
+                formfield='roles',
+                dbfield='roles',
+                uselist=True,
+            )
+            args.update(kwargs)
+
+            # this initialization needs to be done before checking any self.xxx attributes
+            super().__init__(**args)
+
+        def allowed_roles(self):
+            # create a copy so we're not messing with Application record, no more can be configured than current users'
+            allowed_roles = current_user.roles[:]
+            return allowed_roles
+
+        def set(self, formrow):
+            '''
+            if not ROLE_SUPER_ADMIN merge newly set roles with those user can't see
+            '''
+            # these are the roles from the form, but limited to allowed_roles if not ROLE_SUPER_ADMIN
+            resultroles = super().set(formrow)
+            if not current_user.has_role(ROLE_SUPER_ADMIN):
+                theuser = User.query.filter_by(email=formrow['email']).one_or_none()
+                allowed_roles = self.allowed_roles()
+                if theuser:
+                    otherroles = [r for r in theuser.roles if r not in allowed_roles]
+                    resultroles += otherroles
+            return resultroles
+
+        def get(self, dbrow_or_id):
+            '''
+            if not ROLE_SUPER_ADMIN only return roles allowed for this user
+            '''
+            rv = super().get(dbrow_or_id)
+            rvnames = rv['name'].split(SEPARATOR)
+            rvids = rv['id'].split(SEPARATOR)
+            if not current_user.has_role(ROLE_SUPER_ADMIN):
+                allowed_roles = self.allowed_roles()
+                allowed_role_names = [r.name for r in allowed_roles]
+                allowed_role_ids = [str(r.id) for r in allowed_roles]
+                rv = {
+                    'name': SEPARATOR.join([item for item in rvnames if item in allowed_role_names]),
+                    'id': SEPARATOR.join([item for item in rvids if item in allowed_role_ids])
+                }
+            return rv
+
+        def options(self):
+            '''limit visible options to what user can see if not ROLE_SUPER_ADMIN'''
+            opts = super().options()
+            if not current_user.has_role(ROLE_SUPER_ADMIN):
+                allowed_roles = self.allowed_roles()
+                allowed_role_ids = [r.id for r in allowed_roles]
+                opts = [o for o in opts if o['value'] in allowed_role_ids]
+            return opts
+
+Use the created options picker class as part of view instantiation
+
+.. code-block:: python
+
+            clientcolumns=[
+                {'data': 'roles', 'name': 'roles', 'label': 'Roles',
+                 '_treatment': {'relationship': {'optionspicker': RolesPicker()}}
+                 },
