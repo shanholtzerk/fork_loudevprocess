@@ -72,14 +72,21 @@ Dump
 
 .. code-block:: shell
 
-    mysqldump -h localhost -u [user] -p [database] > file.sql
+    mysqldump -h 127.0.0.1 -u [user] -p [database] > file.sql
     # enter [user] password
 
 Restore
 
 .. code-block:: shell
 
-    mysql -h localhost -u [user] -p [database] < file.sql
+    mysql -h 127.0.0.1 -u [user] -p [database] < file.sql
+    # enter [user] password
+
+or
+
+.. code-block:: shell
+
+    gunzip < file.sql.gz | mysql -h 127.0.0.1 -u [user] -p [database]
     # enter [user] password
 
 Use phpmyadmin to restore database

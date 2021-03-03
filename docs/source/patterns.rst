@@ -1,6 +1,9 @@
 Patterns
 ++++++++++++++++++++++++++++++
 
+Hey, check out https://exploreflask.com/en/latest/index.html which has some patterns which might
+be of interest.
+
 loutilities.tables-assets
 ---------------------------------
 files in ``loutilities.tables-assets`` are used in conjunction with the classes in ``loutilities.tables.py``.
@@ -974,3 +977,73 @@ Use the created options picker class as part of view instantiation
                 {'data': 'roles', 'name': 'roles', 'label': 'Roles',
                  '_treatment': {'relationship': {'optionspicker': RolesPicker()}}
                  },
+
+row reorder control
+-------------------------------------------------------
+To use a widget to reorder a row, the model for the table needs to have an **order** field
+
+.. code-block:: python
+
+    class MeetingType(Base):
+        __tablename__ = 'meetingtype'
+        id                  = Column(Integer(), primary_key=True)
+        interest_id         = Column(Integer, ForeignKey('localinterest.id'))
+        interest            = relationship('LocalInterest', backref=backref('meetingtypes'))
+
+        order               = Column(Integer)
+        meetingtype         = Column(Text)
+        options             = Column(Text)
+        meetingwording      = Column(Text)
+        statusreportwording = Column(Text)
+        invitewording       = Column(Text)
+
+        version_id = Column(Integer, nullable=False, default=1)
+        __mapper_args__ = {
+            'version_id_col': version_id
+        }
+
+The `createrow()` method should initialize the order field
+
+.. code-block:: python
+
+    class MeetingTypesView(DbCrudApiInterestsRolePermissions):
+        def createrow(self, formdata):
+            '''
+            provide default for order field when row is created
+            :param formdata: data from form
+            :return: see super().createrow()
+            '''
+            max = db.session.query(func.max(MeetingType.order)).filter_by(**self.queryparams).filter(*self.queryfilters).one()
+            if max[0]:
+                formdata['order'] = max[0] + 1
+            else:
+                formdata['order'] = 1
+            output = super().createrow(formdata)
+            return output
+
+The column needs to be defined in the tables instantiation of the DbCrudApiInterestsRolePermissions derived
+view, and dt options needs to tell the datatable to reorder based on the **order** field, and that the **order**
+field is used for reordering.
+
+.. code-block:: python
+
+    meetingtypes_view = MeetingTypesView(
+        clientcolumns=[
+            {'data': 'order', 'name': 'order', 'label': 'Reorder',
+             'type': 'hidden',
+             'className': 'reorder shrink-to-fit',
+             'render': {'eval': 'render_grip'},
+             },
+            ...
+        ]
+
+        dtoptions={
+            'order': [['order:name', 'asc']],
+            'rowReorder': {
+                'dataSrc': 'order',
+                'selector': 'td.reorder',
+                'snapX': True,
+            },
+            ...
+        }
+    )
