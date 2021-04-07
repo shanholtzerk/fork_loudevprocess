@@ -1047,3 +1047,43 @@ field is used for reordering.
             ...
         }
     )
+
+add filters to table view
+-------------------------------------------------------
+To add a filter to a table, the filter needs to be declared in the pretablehtml block. Additionally
+the yadcf options need to be created.
+
+.. code-block:: python
+
+    from loutilities.filters import filtercontainerdiv, filterdiv, yadcfoption
+
+    invites_filters = filtercontainerdiv()
+    with invites_filters:
+        filterdiv('invites-external-filter-date', 'Date')
+        filterdiv('invites-external-filter-name', 'Name')
+        filterdiv('invites-external-filter-attended', 'Attended')
+
+    invites_yadcf_options = [
+        yadcfoption('date:name', 'invites-external-filter-date', 'range_date'),
+        yadcfoption('name:name', 'invites-external-filter-name', 'multi_select', placeholder='Select names', width='200px'),
+        yadcfoption('attended:name', 'invites-external-filter-attended', 'select', placeholder='Select', width='100px'),
+    ]
+
+    invites_view = InvitesView(
+        pretablehtml=invites_filters.render(),
+        yadcfoptions=invites_yadcf_options,
+        :
+    )
+
+If any filters need to be persistent (using session or local storage), in `afterdatatables()`
+register these and initialize
+
+.. code-block:: javascript
+
+    function afterdatatables() {
+        // set up registered filters (id, default for local storage, transient => don't update local storage
+        fltr_register('members-external-filter-members', null, true);
+
+        // initialize all the filters
+        fltr_init();
+    }
