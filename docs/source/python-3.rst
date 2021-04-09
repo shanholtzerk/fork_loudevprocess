@@ -85,10 +85,14 @@ Convert development project from python 2 to python 3
 *   look for usages of ``cmp`` in sort, not supported any more
 *   ``urlsafe_b64encode`` requires bytes, not str
 *   check file opens around csv classes (e.g., DictReader, DictWriter) should use mode `'r'` and `'w'` and `param newline=''`
+
     *   in fact look for `'wb'` and `'rb'` as there may be other binary file operations which need to be fixed
-*   within `__main__` seems like cannot do `from . import xxx` (e.g., version); needs to be moved to `main()`
-    as `from <project> import xxx`
+
+    *   within `__main__` seems like cannot do `from . import xxx` (e.g., version); needs to be moved to `main()`
+        as `from <project> import xxx`
+        
 *   `argparse.ArgumentParser()` doesn't have version keyword
+
     *   See https://docs.python.org/3.6/library/argparse.html#action
     *   use
 
