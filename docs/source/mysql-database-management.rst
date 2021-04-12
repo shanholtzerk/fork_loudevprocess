@@ -79,17 +79,19 @@ Restore
 
 .. code-block:: shell
 
-    mysql -h 127.0.0.1 -u [user] -p [database] < file.sql
+    mysql -h 127.0.0.1 [-P 8889] -u [user] -p [database] < file.sql
     # enter [user] password
+    # note [-P 8889] is if different port, e.g., using mamp
 
 or
 
 .. code-block:: shell
 
-    gunzip < file.sql.gz | mysql -h 127.0.0.1 -u [user] -p [database]
+    gunzip < file.sql.gz | mysql -h 127.0.0.1 [-P 8889] -u [user] -p [database]
+    [or] zcat file.sql.gz | mysql -h 127.0.0.1 [-P 8889] -u [user] -p [database]
     # enter [user] password
 
-Use phpmyadmin to restore database
+Use phpmyadmin to restore database. note the file size accepted is limited
 
 * select database to be restored
 * click Import
