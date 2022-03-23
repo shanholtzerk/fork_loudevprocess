@@ -72,8 +72,9 @@ Dump
 
 .. code-block:: shell
 
-    mysqldump -h 127.0.0.1 -u [user] -p [database] > file.sql
+    mysqldump -h 127.0.0.1 [-P 8889] -u [user] -p [database] > file.sql
     # enter [user] password
+    # note [-P 8889] is if different port, e.g., using mamp
 
 Restore
 

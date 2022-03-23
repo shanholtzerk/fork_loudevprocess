@@ -2,6 +2,8 @@
     "restructuredtext.builtDocumentationPath" : "${workspaceRoot}/docs/build/html",
     "restructuredtext.confPath"               : "${workspaceFolder}\\docs",
     "restructuredtext.updateOnTextChanged"    : "true",
-    "restructuredtext.updateDelay"            : 1000,
+    "restructuredtext.updateDelay": 1000,
+    "esbonio.sphinx.confDir": "${workspaceFolder}\\docs",
+    "esbonio.sphinx.buildDir": "${workspaceRoot}/docs/build",
     // "restructuredtext.sphinxBuildPath"        : "C:\\Users\\lking\\Documents\\Lou's Software\\projects\\contracts\\contracts\\venv\\Scripts\\sphinx-build.exe"
 }
