@@ -19,6 +19,7 @@ loutility development process documentation
    https-support-notes
    python-3
    linux-random-procedures
+   development-environment
    patterns
    definitions
 
