@@ -18,3 +18,22 @@ Required account access
 ---------------------------
 * github (https://github.com/)
 
+Development System Configuration
+-------------------------------------
+
+* create config directory
+
+  * get examples from Lou
+  * create <app>.cfg
+  * create users.cfg 
+
+* create and populate python virtual env (https://docs.python.org/3/library/venv.html)
+
+  .. code-block:: shell
+
+    python3 -m venv venv
+    pip install -r requirements.txt
+
+* create and populate databases (:ref:`mysql-database-management`)
+
+  * get sql import files from Lou

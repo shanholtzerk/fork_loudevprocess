@@ -1,3 +1,5 @@
+.. _mysql-database-management:
+
 MySQL Database Management
 +++++++++++++++++++++++++++++
 
