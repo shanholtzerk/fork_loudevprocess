@@ -32,6 +32,7 @@ Development System Configuration
   .. code-block:: shell
 
     python3 -m venv venv
+    venv\scripts\activate # or on linux source venv/bin/activate
     pip install -r requirements.txt
 
 * create and populate databases (:ref:`mysql-database-management`)
