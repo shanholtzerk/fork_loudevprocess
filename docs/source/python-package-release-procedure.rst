@@ -190,6 +190,8 @@ Create javascript libraries
 
 - copy from development static/js to /var/www/<vhost>/libs/js
 
+.. _python-ongoing-development:
+
 Ongoing Development
 --------------------------
 

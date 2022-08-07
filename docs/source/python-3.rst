@@ -110,3 +110,110 @@ Convert development project from python 2 to python 3
         pip-upgrade
         pip freeze > requirements.txt
 
+Upgrade to newer version of python 3
+----------------------------------------
+
+Development Environment
+=========================
+
+* copy ``venv`` virtualenv to ``venv-<oldpyver>`` to save in case of problems with the below
+* upgrade venv to new python
+
+  .. code-block:: shell
+
+      python<ver> -m venv --upgrade venv
+
+* upgrade package requirements (see https://stackoverflow.com/a/49692429/799921)
+
+  .. code-block:: shell
+
+      [pip install pip-upgrader]
+      pip-upgrade 
+
+  .. note::
+    this updates requirements.txt
+
+* create ``venv`` virtualenv for new python version, use latest pip
+
+  .. code-block:: shell
+
+      python<ver> -m venv venv
+        # vscode popup - accept new venv as workspace folder
+      pip install -U pip
+
+* install requirements
+
+  .. code-block:: shell
+
+      python -m pip cache purge
+      pip install -r requirements.txt
+
+* if resolution errors occur remove problem package from requirements.txt and retry to let pip resolve the correct version
+
+* set interpreter for vscode
+
+  * click on python version number in status bar (on bottom of vscode window)
+  * make sure it is set to .\venv\Scripts\python.exe
+  * restart vscode window
+
+* test application, resolve any issues
+* commit changes
+ 
+Target Environment
+=========================
+
+* stop service
+
+  .. code-block:: shell
+
+    # from sudouser account
+    # stop service
+    sudo systemctl stop vhost-<appl>-<tld>.service
+
+* upgrade venv
+
+  .. code-block:: shell
+
+    # from <appuser> account (see app configuration)
+    (<appuser>) cd /var/www/<tld>.<shortapp>.loutilities.com
+    (<appuser>) rm -rf venv/*
+    (<appuser>) /usr/local/bin/python<ver> -m venv venv
+    (<appuser>) source venv/bin/activate
+    (<appuser>/venv) pip install -U pip
+    (<appuser>/venv) pip cache purge
+
+* fab deploy release 
+
+  * see :ref:`python-ongoing-development`
+  
+* install packages and create apache control files
+
+  .. code-block:: shell
+
+    # # are these lines a no-op? i.e., did all the packages get installed during fab deploy?
+    # # from <appuser> account (see app configuration)
+    # (<appuser>/venv) cd /var/www/<tld>.<shortapp>.loutilities.com/<reponame>/<reponame>
+    # (<appuser>/venv) pip install -r requirements.txt 
+
+    # from sudouser account
+    # <portnum> is in /root/bin/mod_wsgi-express-readme.txt
+    sudo /root/bin/init-mod_wsgi-express <reponame> <tld>.<shortapp>.loutilities.com <appuser> <appuser> <portnum>
+    sudo cp /home/lking/activate-this/activate_this.py /var/www/<tld>.<shortapp>.loutilities.com/venv/bin
+    sudo chown -R <appuser>:apache /var/www/<tld>.<shortapp>.loutilities.com/venv/bin/activate_this.py
+    # test apache [optional]
+    sudo /etc/mod_wsgi-express/<tld>.<shortapp>.loutilities.com/apachectl start
+    sudo /etc/mod_wsgi-express/<tld>.<shortapp>.loutilities.com/apachectl stop
+    
+    # start service
+    sudo systemctl start vhost-<appl>-<tld>.service
+
+    # verify vhost operation using browser
+
+  where
+
+  .. code-block:: shell
+
+     <tld> is sandbox, www
+     <shortapp> is routes, scores, members, contracts, [others?]
+     <reponame> is runningroutes, rrwebapp, members, contracts, [others?]
+     <appuser> [check configuration]

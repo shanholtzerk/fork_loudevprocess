@@ -73,6 +73,16 @@ Turn off cron information to /var/log/messages
     sudo /usr/bin/systemd-analyze set-log-level notice
     sudo chmod +x /etc/rc.d/rc.local
 
+Set /usr/local/lib in library path
+===================================
+See https://serverfault.com/a/372998
+
+::
+
+    sudo vim /etc/ld.so.conf.d/usrlocal.conf
+    > /usr/local/lib
+    sudo ldconfig -v
+
 LAMP and Security Stack
 =======================
 
