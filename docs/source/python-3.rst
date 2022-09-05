@@ -116,29 +116,25 @@ Upgrade to newer version of python 3
 Development Environment
 =========================
 
-* copy ``venv`` virtualenv to ``venv-<oldpyver>`` to save in case of problems with the below
-* upgrade venv to new python
-
-  .. code-block:: shell
-
-      python<ver> -m venv --upgrade venv
-
 * upgrade package requirements (see https://stackoverflow.com/a/49692429/799921)
 
   .. code-block:: shell
 
+      pip install -U pip
       [pip install pip-upgrader]
       pip-upgrade 
 
   .. note::
     this updates requirements.txt
 
+* mv ``venv`` virtualenv to ``venv-<oldpyver>`` to save in case of problems with the below
 * create ``venv`` virtualenv for new python version, use latest pip
 
   .. code-block:: shell
-
+      
       python<ver> -m venv venv
         # vscode popup - accept new venv as workspace folder
+      venv\scripts\activate
       pip install -U pip
 
 * install requirements
@@ -150,12 +146,26 @@ Development Environment
 
 * if resolution errors occur remove problem package from requirements.txt and retry to let pip resolve the correct version
 
-* set interpreter for vscode
+* upgrade package requirements again, for new python (see https://stackoverflow.com/a/49692429/799921)
+
+  .. code-block:: shell
+
+      pip-upgrade 
+      pip freeze > requirements.txt
+
+* check that pip-upgrade installed compatible versions
+
+  .. code-block:: shell
+
+      pip install -r requirements.txt
+
+* set interpreter for vscode [may have to delete and recreate venv if interpreter cannot be selected]
 
   * click on python version number in status bar (on bottom of vscode window)
-  * make sure it is set to .\venv\Scripts\python.exe
+  * make sure it is set to .\\venv\\Scripts\\python.exe
   * restart vscode window
 
+* remove venv-<oldpyver>
 * test application, resolve any issues
 * commit changes
  
@@ -190,13 +200,10 @@ Target Environment
 
   .. code-block:: shell
 
-    # # are these lines a no-op? i.e., did all the packages get installed during fab deploy?
-    # # from <appuser> account (see app configuration)
-    # (<appuser>/venv) cd /var/www/<tld>.<shortapp>.loutilities.com/<reponame>/<reponame>
-    # (<appuser>/venv) pip install -r requirements.txt 
-
     # from sudouser account
     # <portnum> is in /root/bin/mod_wsgi-express-readme.txt
+    sudo cat /root/bin/mod_wsgi-express-readme.txt
+    # NOTE: for scoretility use sudo /root/bin/init-mod_wsgi-express-uplevel rrwebapp [sandbox.]scoretility.com scoretility scoretility <portnum>
     sudo /root/bin/init-mod_wsgi-express <reponame> <tld>.<shortapp>.loutilities.com <appuser> <appuser> <portnum>
     sudo cp /home/lking/activate-this/activate_this.py /var/www/<tld>.<shortapp>.loutilities.com/venv/bin
     sudo chown -R <appuser>:apache /var/www/<tld>.<shortapp>.loutilities.com/venv/bin/activate_this.py
