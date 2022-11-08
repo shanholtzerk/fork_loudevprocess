@@ -142,11 +142,9 @@ https://blog.remirepo.net/post/2016/04/16/My-PHP-Workstation
     sudo yum install php73-php-xml -y
     sudo systemctl restart php73-php-fpm
     add following to the vhost config file (in /etc/httpd/sites-available)
-    -  <FilesMatch \\.php$>
-    -  SetHandler "proxy:fcgi://127.0.0.1:9073"
-    ..
-    [or 9056, based on php version]
-    -  </FilesMatch>
+      <FilesMatch \\.php$>
+         SetHandler "proxy:fcgi://127.0.0.1:9073" [or 9056, based on php version]
+      </FilesMatch>
     sudo apachectl restart
     sudo systemctl restart php73-php-fpm
 
