@@ -151,6 +151,7 @@ Development Environment
   .. code-block:: shell
 
       pip-upgrade 
+      pip install -r requirements.txt # check resolution errors
       pip freeze > requirements.txt
 
 * check that pip-upgrade installed compatible versions
