@@ -118,35 +118,27 @@ See https://stackoverflow.com/a/50079574/799921 and
 https://blog.remirepo.net/post/2016/04/16/My-PHP-Workstation
 ::
 
+    # this is done once
     sudo yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm -y
     sudo yum install http://rpms.remirepo.net/enterprise/remi-release-7.rpm -y
     sudo yum install yum-utils -y
-    sudo yum install php56 -y
-    sudo yum install php73 -y
-    sudo yum install php56-php-fpm -y
-    sudo yum install php73-php-fpm -y
-    sudo systemctl stop php56-php-fpm
-    sudo systemctl stop php73-php-fpm
-    sudo vim /opt/remi/php56/root/etc/php-fpm.d/www.conf
-    -  change listen port to 9056
-    sudo vim /etc/opt/remi/php73/php-fpm.d/www.conf
-    -  change listen port to 9073
-    sudo systemctl start php56-php-fpm
-    sudo systemctl enable php56-php-fpm
-    sudo yum install php56-php-mysqlnd -y
-    sudo systemctl restart php56-php-fpm
-    sudo systemctl start php73-php-fpm
-    sudo systemctl enable php73-php-fpm
-    sudo yum install php73-php-mysqlnd -y
-    sudo yum install php56-php-xml -y
-    sudo yum install php73-php-xml -y
-    sudo systemctl restart php73-php-fpm
-    add following to the vhost config file (in /etc/httpd/sites-available)
-      <FilesMatch \\.php$>
-         SetHandler "proxy:fcgi://127.0.0.1:9073" [or 9056, based on php version]
-      </FilesMatch>
+
+    # this is done for each new version
+    sudo yum install php74y -y
+    sudo yum install php74-php-fpm -y
+    sudo vim /etc/opt/remi/php74/php-fpm.d/www.conf
+        listen = 127.0.0.1:9074 # 9000 + 74 for the php version
+    sudo yum install php74-php-mysqlnd -y
+    sudo yum install php74-php-xml -y
+    sudo systemctl start php74-php-fpm
+
+    # this is done for each vhost
+    sudo vim /etc/httpd/sites-available/www.steeplechasers.org.conf # match the listen port above
+        24c24
+        <     SetHandler "proxy:fcgi://127.0.0.1:9073"
+        ---
+        >     SetHandler "proxy:fcgi://127.0.0.1:9074"
     sudo apachectl restart
-    sudo systemctl restart php73-php-fpm
 
 Create a2ensite, a2dissite
 --------------------------
