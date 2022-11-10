@@ -130,6 +130,7 @@ https://blog.remirepo.net/post/2016/04/16/My-PHP-Workstation
         listen = 127.0.0.1:9074 # 9000 + 74 for the php version
     sudo yum install php74-php-mysqlnd -y
     sudo yum install php74-php-xml -y
+    sudo systemctl enable php74-php-fpm
     sudo systemctl start php74-php-fpm
 
     # this is done for each vhost
