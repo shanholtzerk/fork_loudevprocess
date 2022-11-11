@@ -130,6 +130,31 @@ https://blog.remirepo.net/post/2016/04/16/My-PHP-Workstation
         listen = 127.0.0.1:9074 # 9000 + 74 for the php version
     sudo yum install php74-php-mysqlnd -y
     sudo yum install php74-php-xml -y
+
+    # optimize memory usage
+    sudo vim /etc/opt/remi/php74/php.ini
+        409c409
+        < memory_limit = 128M
+        ---
+        > memory_limit = 256M
+        846c846
+        < upload_max_filesize = 2M
+        ---
+        > upload_max_filesize = 4M
+    sudo vim /etc/opt/remi/php74/php-fpm.d/www.conf
+        104c104
+        < pm = dynamic
+        ---
+        > pm = ondemand
+        115c115
+        < pm.max_children = 50
+        ---
+        > pm.max_children = 25
+        141c141
+        < ;pm.max_requests = 500
+        ---
+        > pm.max_requests = 500
+
     sudo systemctl enable php74-php-fpm
     sudo systemctl start php74-php-fpm
 
