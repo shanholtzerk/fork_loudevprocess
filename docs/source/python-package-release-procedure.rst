@@ -17,6 +17,12 @@ release to github
 
     pip freeze > requirements.txt
 
+or using powershell
+
+.. code-block:: shell
+
+    pip freeze | out-file .\requirements.txt -encoding ascii
+
 -  commit requirements.txt before the following
 
 .. code-block:: shell

@@ -20,6 +20,7 @@ loutility development process documentation
    python-3
    linux-random-procedures
    development-environment
+   docker
    patterns
    definitions
 
