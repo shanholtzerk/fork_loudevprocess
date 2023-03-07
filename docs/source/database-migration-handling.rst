@@ -19,42 +19,44 @@ package <https://pypi.org/project/Flask-Migrate/>`__. See
 https://flask-migrate.readthedocs.io/en/latest/# for information
 about migrating content.
 
--   Use latest version of flask-migrate
+- First time use for an app
 
-    .. code-block:: shell
+  - Use latest version of flask-migrate
 
-       pip install -U flask-migrate
-       pip freeze > requirements.txt
+      .. code-block:: shell
 
--   create app.py (example members)
+         pip install -U flask-migrate
+         pip freeze > requirements.txt
 
-    .. code-block:: python
+  - create app.py (example members)
 
-        # standard
-        import os.path
+      .. code-block:: python
 
-        # pypi
-        from flask_migrate import Migrate
+          # standard
+          import os.path
 
-        # homegrown
-        from members import create_app
-        from members.settings import Production
-        from members.model import db
+          # pypi
+          from flask_migrate import Migrate
 
-        abspath = os.path.abspath(__file__)
-        configpath = os.path.join(os.path.dirname(abspath), 'config', 'members.cfg')
-        userconfigpath = os.path.join(os.path.dirname(abspath), 'config', 'users.cfg')
-        # userconfigpath first so configpath can override
-        configfiles = [userconfigpath, configpath]
-        app = create_app(Production(configfiles), configfiles)
+          # homegrown
+          from members import create_app
+          from members.settings import Production
+          from members.model import db
 
-        migrate = Migrate(app, db)
+          abspath = os.path.abspath(__file__)
+          configpath = os.path.join(os.path.dirname(abspath), 'config', 'members.cfg')
+          userconfigpath = os.path.join(os.path.dirname(abspath), 'config', 'users.cfg')
+          # userconfigpath first so configpath can override
+          configfiles = [userconfigpath, configpath]
+          app = create_app(Production(configfiles), configfiles)
 
--   initialize flask-migrate (optional --multidb)
+          migrate = Migrate(app, db)
 
-    .. code-block:: shell
+  - initialize flask-migrate (optional --multidb)
 
-        flask db init --multidb
+      .. code-block:: shell
+
+          flask db init --multidb
 
 -   Update sqlalchemy model in <project>/<model>.py
 -   Repeat as necessary, from within virtualenv
@@ -63,9 +65,28 @@ about migrating content.
 
        flask db migrate -m "<comment>"
 
-    -   update output file to fill new tables and new fields
+    -   update output file to fill new tables and new fields (see :ref:`update columns during upgrade`)
 
         -  save changes off repo, in case migration revision needs to be repeated
+
+    -   add name to each foreign key
+    
+        - foreign keys are unnamed initially, e.g.,
+  
+          .. code-block:: python
+
+            op.create_foreign_key(None, 'taskcompletion', 'position', ['position_id'], ['id'])
+                :
+            op.drop_constraint(None, 'taskcompletion', type_='foreignkey')
+
+        - give each key a unique name, e.g.,
+
+          .. code-block:: python
+
+            op.create_foreign_key('task_taskcompletion_fk_1', 'taskcompletion', 'position', ['position_id'], ['id'])
+                :
+            op.drop_constraint('task_taskcompletion_fk_1', 'taskcompletion', type_='foreignkey')
+
 
     -   upgrade test database to verify changes
 
@@ -90,6 +111,8 @@ about migrating content.
         -  before deleting you might want to save this in an editor buffer
 
     -  commit changes to migration conversion file -m "database conversion for xxx"
+
+.. _update columns during upgrade:
 
 Column update during upgrade
 ================================
