@@ -152,8 +152,8 @@ Export Database from MAMP Server
    -  custom
    -  check Format-specific options > Object creation options > Add DROP TABLE / VIEW / PROCEDURE / FUNCTION / EVENT / TRIGGER statement
 
-Database Migration (bare alembic - early apps)
-------------------------------------------------
+Database Migration (obsolete - bare alembic - early apps)
+----------------------------------------------------------
 
 Database migration is accomplished by using the `alembic
 package <https://pypi.python.org/pypi/alembic>`__. See
