@@ -155,18 +155,18 @@ Create server directory structure and virtual environment
 .. code-block:: shell
 
     ### upload webapp files to target host
-    sudo mkdir -p /var/www/www.<vhost>.com/<repo-name>
-    cd /var/www/www.<vhost>.com/<repo-name>
+    sudo mkdir -p /var/www/www.<vhost>/<repo-name>
+    cd /var/www/www.<vhost>/<repo-name>
     sudo git clone https://github.com/louking/<repo-name>
-    cd /var/www/www.<vhost>.com
+    cd /var/www/www.<vhost>
     sudo chown -R <vhostuser>:<vhostuser> <repo-name>
-    sudo mkdir /var/www/www.<vhost>.com/applogs
-    sudo chown -R <vhostuser>:<vhostuser> /var/www/www.<vhost>.com/applogs
-    sudo mkdir /var/www/www.<vhost>.com/<repo-name>/<repo-name>/config
-    sudo chown -R <vhostuser>:<vhostuser> /var/www/www.<vhost>.com/<repo-name>/<repo-name>/config
+    sudo mkdir /var/www/www.<vhost>/applogs
+    sudo chown -R <vhostuser>:<vhostuser> /var/www/www.<vhost>/applogs
+    sudo mkdir /var/www/www.<vhost>/<repo-name>/<repo-name>/config
+    sudo chown -R <vhostuser>:<vhostuser> /var/www/www.<vhost>/<repo-name>/<repo-name>/config
 
     ### Create python virtual environment
-    cd /var/www/www.<vhost>.com
+    cd /var/www/www.<vhost>
     sudo mkdir venv
     sudo chown -R <vhostuser>:<vhostuser> venv
     sudo su <vhostuser>
@@ -180,7 +180,7 @@ Create server directory structure and virtual environment
     sudo su <vhostuser>
     (<vhostuser>) source venv/bin/activate
     (<vhostuser>) pip install --upgrade pip
-    (<vhostuser>) cd /var/www/www.<vhost>.com/<repo-name>/<repo-name>
+    (<vhostuser>) cd /var/www/www.<vhost>/<repo-name>/<repo-name>
     (<vhostuser>) pip install -r requirements.txt
 
 Create databases
