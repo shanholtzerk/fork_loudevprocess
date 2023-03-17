@@ -79,7 +79,7 @@ See also `Compose CLI environment variables <https://docs.docker.com/compose/env
 
 Ref: https://www.docker.com/blog/how-to-deploy-on-remote-docker-hosts-with-docker-compose/
 
-Reference code at https://github.com/louking/webmodules/tree/docker-skeleton-v1.0
+Reference code at https://github.com/louking/webmodules/tree/docker-skeleton-v1.1
 
 .. code-block:: shell
 
@@ -120,4 +120,44 @@ or
 
 https
 ------------
-https://mindsers.blog/post/https-using-nginx-certbot-docker/
+
+The server has apache running natively. We'll proxy via apache, then take care of routing within the docker compose application
+with an nginx container.
+
+Apache setup example for production host:
+
+.. code-block:: ApacheConf
+
+    # portnum needs to be unique among all vhosts
+    Define admin lou.king@steeplechasers.org
+    Define domainname example.loutilities.us
+    Define portnum 8000
+
+    <VirtualHost *:80>
+    ServerName www.${domainname}
+    ServerAlias ${domainname}
+    #   Redirect permanent / https://www.${domainname}/
+    </VirtualHost>
+
+
+    <VirtualHost *:443>
+    ServerAdmin ${admin}
+    ServerName www.${domainname}
+    ServerAlias ${domainname}
+
+    SSLProxyEngine on
+    SSLCertificateFile /etc/letsencrypt/live/www.${domainname}/fullchain.pem
+    SSLCertificateKeyFile /etc/letsencrypt/live/www.${domainname}/privkey.pem
+    Include /etc/letsencrypt/options-ssl-apache.conf
+    SSLCertificateChainFile /etc/letsencrypt/live/www.weewx.lousbrews.info/chain.pem
+
+    ProxyPass / http://localhost:${portnum}/
+    ProxyPassReverse / http://localhost:${portnum}/
+    RequestHeader set X-Forwarded-Port 443
+    RequestHeader set X-Forwarded-Scheme https
+
+    </VirtualHost>
+
+    UnDefine admin
+    UnDefine domainname
+    UnDefine portnum
