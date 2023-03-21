@@ -38,3 +38,17 @@ Development System Configuration
 * create and populate databases (:ref:`mysql-database-management`)
 
   * get sql import files from Lou
+
+Development Workflow
+-----------------------
+
+See https://docs.github.com/en/get-started/quickstart/contributing-to-projects
+
+Synopsys:
+
+* fork repository on GitHub
+* clone fork on development workstation
+* create a branch for a given change
+* test change in development environment
+* push change to forked repository
+* generate a pull request
