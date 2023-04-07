@@ -39,6 +39,74 @@ Development System Configuration
 
   * get sql import files from Lou
 
+Shell files
+----------------
+If a shell file is created in a Windows development environment, it won't have execute permission when pushed to 
+a Linux target. See http://blog.lesc.se/2011/11/how-to-change-file-premissions-in-git.html
+
+After creating and committing the file, change its permissions in git
+
+  .. code-block:: shell
+
+    git update-index --chmod=+x .\app\src\dbupgrade_and_run.sh
+
+then commit as normal
+
+Docker files
+--------------
+Example docker files can be found at https://github.com/louking/webmodules, with the latest docker-skeleton-vx.x tag
+
+vscode launch.json
+--------------------
+For debugging, you'll need the following in vscode's launch.json
+
+  .. code-block:: shell
+
+    // https://code.visualstudio.com/docs/containers/docker-compose#_python
+    {
+        "name": "Python: Remote Attach",
+        "type": "python",
+        "request": "attach",
+        "port": 5678,
+        "host": "localhost",
+        "pathMappings": [
+            {
+                "localRoot": "${workspaceFolder}/app/src",
+                "remoteRoot": "/app"
+            }
+        ],
+        "justMyCode": false
+    },
+
+Development vs Production via docker compose
+-------------------------------------------------
+
+Build and start app in development, no debugging
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  .. code-block:: shell
+
+    docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
+
+Build and start app in development, with debugging
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Run
+
+  .. code-block:: shell
+
+    docker compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.debug.yml up --build -d
+
+then start debugger with vscode 
+
+Build and start app in Production
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  .. code-block:: shell
+
+    docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
+
+
 Development Workflow
 -----------------------
 
