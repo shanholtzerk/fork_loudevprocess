@@ -39,8 +39,8 @@ Development System Configuration
 
   * get sql import files from Lou
 
-Shell files
-----------------
+Shell file permissions
+--------------------------
 If a shell file is created in a Windows development environment, it won't have execute permission when pushed to 
 a Linux target. See http://blog.lesc.se/2011/11/how-to-change-file-premissions-in-git.html
 
