@@ -128,36 +128,47 @@ Apache setup example for production host:
 
 .. code-block:: ApacheConf
 
+    # www.webmodules.loutilities.us
+
     # portnum needs to be unique among all vhosts
-    Define admin lou.king@steeplechasers.org
-    Define domainname example.loutilities.us
-    Define portnum 8000
 
     <VirtualHost *:80>
-    ServerName www.${domainname}
-    ServerAlias ${domainname}
-    #   Redirect permanent / https://www.${domainname}/
+        ServerName www.webmodules.loutilities.us
+        ServerAlias webmodules.loutilities.us
+        # comment out when creating certificate
+        Redirect permanent / https://www.webmodules.loutilities.us/
     </VirtualHost>
 
 
     <VirtualHost *:443>
-    ServerAdmin ${admin}
-    ServerName www.${domainname}
-    ServerAlias ${domainname}
+        ServerAdmin lking@pobox.com
+        ServerName www.webmodules.loutilities.us
+        ServerAlias webmodules.loutilities.us
 
-    SSLProxyEngine on
-    SSLCertificateFile /etc/letsencrypt/live/www.${domainname}/fullchain.pem
-    SSLCertificateKeyFile /etc/letsencrypt/live/www.${domainname}/privkey.pem
-    Include /etc/letsencrypt/options-ssl-apache.conf
-    SSLCertificateChainFile /etc/letsencrypt/live/www.weewx.lousbrews.info/chain.pem
+        SSLProxyEngine on
+        SSLCertificateFile /etc/letsencrypt/live/www.webmodules.loutilities.us/fullchain.pem
+        SSLCertificateKeyFile /etc/letsencrypt/live/www.webmodules.loutilities.us/privkey.pem
+        Include /etc/letsencrypt/options-ssl-apache.conf
+        SSLCertificateChainFile /etc/letsencrypt/live/www.weewx.lousbrews.info/chain.pem
 
-    ProxyPass / http://localhost:${portnum}/
-    ProxyPassReverse / http://localhost:${portnum}/
-    RequestHeader set X-Forwarded-Port 443
-    RequestHeader set X-Forwarded-Scheme https
+        ProxyPass / http://localhost:8000/
+        ProxyPassReverse / http://localhost:8000/
+        RequestHeader set X-Forwarded-Port 443
+        RequestHeader set X-Forwarded-Scheme https
 
     </VirtualHost>
 
-    UnDefine admin
-    UnDefine domainname
-    UnDefine portnum
+flask db migrations
+---------------------------
+Execute flask db migrations in the development shell container
+
+.. code-block:: shell
+
+    # initialize migrations environment
+    docker exec webmodules-shell-1 flask db init --multidb
+
+    # create migration
+    docker exec webmodules-shell-1 flask db migrate -m "migration comment"
+
+To add additional database binds to single database, follow 
+https://github.com/miguelgrinberg/Flask-Migrate/issues/179#issuecomment-355344826
