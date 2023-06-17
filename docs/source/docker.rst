@@ -118,6 +118,148 @@ or
 
     docker --context <contextname> compose down
 
+Debugging a Docker Service Locally
+--------------------------------------
+
+Reload Service When Source Changes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In order to allow the docker service to pick up changes in the source files, the /app folder needs to be bound to the local source files
+
+`docker-compose.dev.yml`
+
+.. code-block:: docker
+
+    app:
+      volumes:
+        - ./app/src:/app
+
+Use Debugger from vscode
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In order for vscode to access the service, a Docker compose file similar to the following should be used. This configures nginx to have a long 
+timeout to allow time spent with the service halted, starts the service in the debugger, and exposes the port 5678 which matches the 
+debugger --listen port. This allows the service to be initialized by docker compose without being started.
+
+``docker-compose.debug.yml``
+
+.. code-block:: docker
+
+    services:
+      web:
+        volumes:
+            - ./web/nginx-longtimeout.conf:/etc/nginx/conf.d/nginx-longtimeout.conf
+      app:
+        ports:
+          - 5678:5678
+        # see https://aka.ms/vscode-docker-python-debug
+        command: ["sh", "-c", "pip install debugpy -t /tmp && python /tmp/debugpy --wait-for-client --listen 0.0.0.0:5678 app.py --nothreading --noreload"]
+
+The application is started with docker compose, including these files, as appropriate. E.g., 
+
+.. code-block:: shell
+
+    docker compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.debug.yml up --build -d
+
+Assuming breakpoints are desired and ``docker-compose.debug.yml`` is used, vscode needs to launch accordingly. The following must be added to vscode's ``launch.json``.
+Note the port number 5678 matches that which was used within ``docker-compose.debug.yml``. Also note that the removeRoot must match the python version which 
+was used within the service.
+
+``launch.json``
+
+.. code-block:: javascript
+
+    {
+        "configurations": [
+            // see https://code.visualstudio.com/docs/containers/docker-compose#_python
+            {
+                "name": "Python: Remote Attach",
+                "type": "python",
+                "request": "attach",
+                "port": 5678,
+                "host": "localhost",
+                "pathMappings": [
+                    {
+                        "localRoot": "${workspaceFolder}/app/src",
+                        "remoteRoot": "/app"
+                    },
+                    // allow debugging of pip installed packages
+                    {
+                        "localRoot": "${workspaceFolder}/.venv/Lib/site-packages",
+                        "remoteRoot": "/usr/local/lib/python3.9/site-packages"
+                    }
+                ],
+                "justMyCode": false
+            },
+        ]
+    }
+
+Debug pypi Package Stored Locally
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If a separate package that is normally loaded via pypi is in the workspace, but is being developed along with the main package (e.g., loutilities), an
+additional docker compose file and ``launch.json`` configuration is required.
+
+``docker-compose.loutilities.yml``
+
+.. code-block:: docker
+
+    # use editable loutilities
+    services:
+      app:
+        build: 
+          args:
+            - PYTHON_LIB_VER=${PYTHON_LIB_VER}
+        volumes:
+          - ..\..\loutilities\loutilities\loutilities:/usr/local/lib/python${PYTHON_LIB_VER}/site-packages/loutilities
+
+``launch.json``
+
+.. code-block:: javascript
+
+    {
+        "configurations":  [
+            // see https://code.visualstudio.com/docs/containers/docker-compose#_python
+            {
+                "name": "Python: Remote Attach (loutilities)",
+                "type": "python",
+                "request": "attach",
+                "port": 5678,
+                "host": "localhost",
+                "pathMappings": [
+                    {
+                        "localRoot": "${workspaceFolder}/app/src",
+                        "remoteRoot": "/app"
+                    },
+                    // allow debugging of pip installed packages
+                    {
+                        "localRoot": "${workspaceFolder}/.venv/Lib/site-packages",
+                        "remoteRoot": "/usr/local/lib/python3.9/site-packages"
+                    },
+                    // see https://code.visualstudio.com/docs/editor/variables-reference#_variables-scoped-per-workspace-folder
+                    {
+                        "localRoot": "${workspaceFolder:loutilities}/loutilities/",
+                        "remoteRoot": "/usr/local/lib/python3.9/site-packages/loutilities/"
+                    },
+
+                ],
+                "justMyCode": false
+            },
+        ]
+    }
+
+and the application is started with docker compose including these files, as appropriate. E.g., 
+
+.. code-block:: shell
+
+    docker compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.loutilities.yml -f docker-compose.debug.yml up --build -d
+
+Restart Service
+^^^^^^^^^^^^^^^^^^^
+
+To restart the service, e.g., after changes have been made in initialization code, use ``docker compose <files> restart`` or ``docker compose <files> stop``, 
+``docker compose <files> start``. Also see https://www.shellhacks.com/docker-compose-start-stop-restart-build-single-service/
+
 https
 ------------
 
