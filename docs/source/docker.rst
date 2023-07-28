@@ -260,8 +260,10 @@ Restart Service
 To restart the service, e.g., after changes have been made in initialization code, use ``docker compose <files> restart`` or ``docker compose <files> stop``, 
 ``docker compose <files> start``. Also see https://www.shellhacks.com/docker-compose-start-stop-restart-build-single-service/
 
-https
-------------
+.. _docker-apache-conf:
+
+Apache Configuration
+-------------------------
 
 The server has apache running natively. We'll proxy via apache, then take care of routing within the docker compose application
 with an nginx container.
@@ -270,31 +272,31 @@ Apache setup example for production host:
 
 .. code-block:: ApacheConf
 
-    # www.webmodules.loutilities.us
-
-    # portnum needs to be unique among all vhosts
+    # www.<vhost>
 
     <VirtualHost *:80>
-        ServerName www.webmodules.loutilities.us
-        ServerAlias webmodules.loutilities.us
+        ServerName www.<vhost>
+        ServerAlias <vhost>
         # comment out when creating certificate
-        Redirect permanent / https://www.webmodules.loutilities.us/
+        Redirect permanent / https://www.<vhost>/
     </VirtualHost>
 
 
     <VirtualHost *:443>
         ServerAdmin lking@pobox.com
-        ServerName www.webmodules.loutilities.us
-        ServerAlias webmodules.loutilities.us
+        ServerName www.<vhost>
+        ServerAlias <vhost>
 
+        # comment out when creating certificate
         SSLProxyEngine on
-        SSLCertificateFile /etc/letsencrypt/live/www.webmodules.loutilities.us/fullchain.pem
-        SSLCertificateKeyFile /etc/letsencrypt/live/www.webmodules.loutilities.us/privkey.pem
+        SSLCertificateFile /etc/letsencrypt/live/www.<vhost>/fullchain.pem
+        SSLCertificateKeyFile /etc/letsencrypt/live/www.<vhost>/privkey.pem
         Include /etc/letsencrypt/options-ssl-apache.conf
-        SSLCertificateChainFile /etc/letsencrypt/live/www.weewx.lousbrews.info/chain.pem
+        SSLCertificateChainFile /etc/letsencrypt/live/www.<vhost>/chain.pem
 
-        ProxyPass / http://localhost:8000/
-        ProxyPassReverse / http://localhost:8000/
+        ProxyPreserveHost on
+        ProxyPass / http://localhost:<port>/
+        ProxyPassReverse / http://localhost:<port>/
         RequestHeader set X-Forwarded-Port 443
         RequestHeader set X-Forwarded-Scheme https
 
@@ -314,3 +316,68 @@ Execute flask db migrations in the development shell container
 
 To add additional database binds to single database, follow 
 https://github.com/miguelgrinberg/Flask-Migrate/issues/179#issuecomment-355344826
+
+.. _initial-deploy-docker:
+
+Initial Deploy of Docker Web App to Server
+--------------------------------------------
+
+Create apache configuration (e.g., /etc/httpd/sites-available/www.<vhost>.conf), via :ref:`docker-apache-conf`
+
+Set up user account (once per server)
+
+.. code-block:: shell
+
+    (appuser) vim .bashrc
+        export HISTTIMEFORMAT="%Y-%m-%d %H:%M "
+
+    (appuser) mkdir .ssh
+    (appuser) chmod 700 .ssh
+    (appuser) touch .ssh/authorized_keys
+    (appuser) chmod 600 .ssh/authorized_keys
+
+    sudo usermod -aG docker appuser
+
+Follow instructions to update DNS (:ref:`update-dns`), and in :ref:`create-vhost` enable VHOST, set up VHOST SSL
+
+Create server base directory
+
+.. code-block:: shell
+
+    sudo mkdir /var/www/www.<vhost>
+    sudo mkdir /var/www/www.<vhost>/logs
+    sudo a2ensite www.<vhost>
+    sudo apachectl configtest # test configuration created above
+    sudo apachectl restart
+
+Create git environment
+
+.. code-block:: shell
+
+    sudo mkdir -p /var/www/www.<vhost>/<appname>
+    cd /var/www/www.<vhost>/<appname>
+    sudo git clone https://github.com/louking/<appname>
+    cd /var/www/www.<vhost>
+    sudo chown -R appuser:appuser <appname>
+    sudo mkdir /var/www/www.<vhost>/applogs
+    sudo chown -R appuser:appuser applogs
+    sudo mkdir /var/www/www.<vhost>/<appname>/<appname>/config
+    sudo mkdir /var/www/www.<vhost>.loutilities.us/<appname>/<appname>/config/db
+    sudo chmod 700 /var/www/www.<vhost>.loutilities.us/<appname>/<appname>/config/db
+    # create config file(s)
+    sudo chown -R appuser:appuser /var/www/www.<vhost>/<appname>/<appname>/config
+    # create <appname>.cfg
+    # if needed, create users.cfg
+    # if needed, create /var/www/www.<vhost>/<appname>/<appname>/.env
+    # if needed, create password.txt file(s)
+
+Start application
+
+.. code-block:: shell
+
+    (appuser) docker compose -f docker-compose.yml -f docker-compose.<qualifier>.yml up --build -d
+
+    where:
+        <qualifier> is one of prod, sandbox
+
+

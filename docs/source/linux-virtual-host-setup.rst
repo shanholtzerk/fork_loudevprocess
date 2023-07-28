@@ -50,6 +50,8 @@ Put <vhostuser> in apache group, access to <vhostuser> group,
     sudo chown -R <vhostuser>:<vhostuser> /home/<vhostuser>
     sudo chmod -R g+s /home/<vhostuser>/
 
+.. _update-dns:
+
 Update DNS (optional)
 --------------------------
 May need to create the following records in DNS server.
@@ -72,6 +74,8 @@ Create VHOST
 ------------
 
 The following expects ``mod_wsgi-express`` to be running, see :ref:`set-script-as-service` for details.
+
+If you're deploying on docker, see :ref:`initial-deploy-docker`
 
 Create /etc/httpd/sites-available/www.<vhost>.conf
 
