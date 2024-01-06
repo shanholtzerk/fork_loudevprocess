@@ -1,4 +1,4 @@
-Docker
+Docker Development
 ++++++++++++++++++++++++++++++++
 
 Installation
@@ -121,20 +121,50 @@ or
 Debugging a Docker Service Locally
 --------------------------------------
 
-Reload Service When Source Changes
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. note::
 
-In order to allow the docker service to pick up changes in the source files, the /app folder needs to be bound to the local source files
+    This has been made to work in https://github.com/louking/tm-csv-connector.
+    If there are any problems below, please use that repo as an example.
 
-`docker-compose.dev.yml`
+Some Required Files
+^^^^^^^^^^^^^^^^^^^^
 
-.. code-block:: docker
+These allow the database to be upgraded before running the app.
 
-    app:
-      volumes:
-        - ./app/src:/app
+``app/src/app-initdb.d/create-database.sh`` (see `create-database.sh <https://github.com/louking/tm-csv-connector/blob/main/app/src/app-initdb.d/create-database.sh>`_)
 
-Use Debugger from vscode
+``app/dbupgrade_and_run.sh``
+
+.. code-block:: shell
+
+    #!/bin/sh
+
+    # NOTE: file end of line characters must be LF, not CRLF (see https://stackoverflow.com/a/58220487/799921)
+
+    # create database if necessary
+    while ! ./app-initdb.d/create-database.sh
+    do
+        sleep 5
+    done
+
+    # initial volume create may cause flask db upgrade to fail
+    while ! flask db upgrade
+    do
+        sleep 5
+    done
+    exec "$@"
+
+``web/nginx-longtimeout.conf``
+
+.. code-block:: nginx
+
+    # see https://serverfault.com/a/777753
+
+    fastcgi_read_timeout 3600;
+    proxy_read_timeout 3600;
+
+
+Launch Debugger from vscode
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In order for vscode to access the service, a Docker compose file similar to the following should be used. This configures nginx to have a long 
@@ -151,18 +181,96 @@ debugger --listen port. This allows the service to be initialized by docker comp
             - ./web/nginx-longtimeout.conf:/etc/nginx/conf.d/nginx-longtimeout.conf
       app:
         ports:
-          - 5678:5678
-        # see https://aka.ms/vscode-docker-python-debug
-        command: ["sh", "-c", "pip install debugpy -t /tmp && python /tmp/debugpy --wait-for-client --listen 0.0.0.0:5678 app.py --nothreading --noreload"]
+        - 5000:5000
+        - 5678:5678
+        environment:
+        - FLASK_APP=/app/app.py
+        volumes:
+        - ./app/src:/app
+        command: ["./dbupgrade_and_run.sh", "sh", "-c", "pip install debugpy -t /tmp && python /tmp/debugpy --wait-for-client --listen 0.0.0.0:5678 -m flask run --no-debugger --no-reload --host 0.0.0.0 --port 5000"]
+
 
 The application is started with docker compose, including these files, as appropriate. E.g., 
 
 .. code-block:: shell
 
-    docker compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.debug.yml up --build -d
+    docker compose -f docker-compose.yml -f docker-compose.debug.yml up --build -d
+
+or alternately in ``tasks.json`` run task ``docker-compose: debug``
+
+.. code-block:: javascript
+
+    "tasks": [
+        {
+            "label": "build app",
+            "type": "shell",
+            "dependsOn": [
+                "build docs"
+            ],
+            "command": "docker compose -f docker-compose.yml build",
+            "problemMatcher": []
+        },
+        {
+            "type": "docker-compose",
+            "label": "docker-compose: debug",
+            "dependsOn": [
+                "build app"
+            ],
+            "dockerCompose": {
+                "up": {
+                  "detached": true,
+                  "build": false,
+                },
+                "files": [
+                  "${workspaceFolder}/docker-compose.yml",
+                  "${workspaceFolder}/docker-compose.debug.yml"
+                ]
+          },
+        },
+    ]
+
+
+(in ``tasks.json``, for completeness)
+
+.. code-block:: javascript
+
+    "tasks": [
+        {
+            "type": "docker-compose",
+            "label": "docker-compose: up",
+            "dependsOn": [
+                "build app"
+            ],
+            "dockerCompose": {
+                "up": {
+                  "detached": true,
+                  "build": false,
+                },
+                "files": [
+                  "${workspaceFolder}/docker-compose.yml",
+                ]
+          },
+        },
+        {
+            "type": "docker-compose",
+            "label": "docker-compose: down",
+            // "dependsOn": [
+            //     "build app"
+            // ],
+            "dockerCompose": {
+                "down": {
+                //   "services": ["app"]
+                },
+                "files": [
+                  "${workspaceFolder}/docker-compose.yml",
+                  "${workspaceFolder}/docker-compose.debug.yml"
+                ]
+          },
+        },
+    ]
 
 Assuming breakpoints are desired and ``docker-compose.debug.yml`` is used, vscode needs to launch accordingly. The following must be added to vscode's ``launch.json``.
-Note the port number 5678 matches that which was used within ``docker-compose.debug.yml``. Also note that the removeRoot must match the python version which 
+Note the port number 5678 matches that which was used within ``docker-compose.debug.yml``. Also note that the ``remoteRoot`` value must match the python version which 
 was used within the service.
 
 ``launch.json``
@@ -176,8 +284,8 @@ was used within the service.
                 "name": "Python: Remote Attach",
                 "type": "python",
                 "request": "attach",
-                "port": 5678,
                 "host": "localhost",
+                "port": 5678,
                 "pathMappings": [
                     {
                         "localRoot": "${workspaceFolder}/app/src",
@@ -186,7 +294,7 @@ was used within the service.
                     // allow debugging of pip installed packages
                     {
                         "localRoot": "${workspaceFolder}/.venv/Lib/site-packages",
-                        "remoteRoot": "/usr/local/lib/python3.9/site-packages"
+                        "remoteRoot": "/usr/local/lib/python3.10/site-packages"
                     }
                 ],
                 "justMyCode": false
@@ -234,12 +342,12 @@ additional docker compose file and ``launch.json`` configuration is required.
                     // allow debugging of pip installed packages
                     {
                         "localRoot": "${workspaceFolder}/.venv/Lib/site-packages",
-                        "remoteRoot": "/usr/local/lib/python3.9/site-packages"
+                        "remoteRoot": "/usr/local/lib/python3.10/site-packages"
                     },
                     // see https://code.visualstudio.com/docs/editor/variables-reference#_variables-scoped-per-workspace-folder
                     {
                         "localRoot": "${workspaceFolder:loutilities}/loutilities/",
-                        "remoteRoot": "/usr/local/lib/python3.9/site-packages/loutilities/"
+                        "remoteRoot": "/usr/local/lib/python3.10/site-packages/loutilities/"
                     },
 
                 ],
@@ -252,7 +360,7 @@ and the application is started with docker compose including these files, as app
 
 .. code-block:: shell
 
-    docker compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.loutilities.yml -f docker-compose.debug.yml up --build -d
+    docker compose -f docker-compose.yml -f docker-compose.loutilities.yml -f docker-compose.debug.yml up --build -d
 
 Restart Service
 ^^^^^^^^^^^^^^^^^^^
@@ -371,13 +479,30 @@ Create git environment
     # if needed, create /var/www/www.<vhost>/<appname>/<appname>/.env
     # if needed, create password.txt file(s)
 
+Build application 
+
+.. code-block:: shell
+
+    (appuser) docker compose -f docker-compose.yml -f docker-compose.<qualifier>.yml build
+
+    where:
+        <qualifier> is one of prod, sandbox, dev
+
+
 Start application
 
 .. code-block:: shell
 
-    (appuser) docker compose -f docker-compose.yml -f docker-compose.<qualifier>.yml up --build -d
+    (appuser) docker compose -f docker-compose.yml -f docker-compose.<qualifier>.yml up -d
 
     where:
-        <qualifier> is one of prod, sandbox
+        <qualifier> is one of prod, sandbox, dev
+
+Push to docker hub
+
+.. code-block:: shell
+
+    docker login
+    docker compose push
 
 
