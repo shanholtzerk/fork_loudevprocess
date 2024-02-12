@@ -125,6 +125,20 @@ To test with another package which may be changing
     pip uninstall <package>
     pip install -e "C:\Users\lking\Documents\Lou's Software\projects\loutilities\loutilities"
 
+create .pypirc
+~~~~~~~~~~~~~~~~~~~
+in C:\Users\<username> create .pypirc file
+
+.. code-block:: cfg
+
+    [distutils]
+    index-servers=
+        pypi
+
+    [pypi]
+        username = __token__
+        password = <api token from pypi.org/manage/account>
+
 release
 ~~~~~~~
 
@@ -138,7 +152,29 @@ release
 
     python setup.py install sdist bdist_wheel
     twine upload dist/<package>-<version>*.*
-    # use pypi password
+
+alternately create a task in tasks.json
+
+.. code-block:: javascript
+
+	"tasks": [
+        {
+            "label": "push to pypi",
+            "type": "shell",
+            "command":"venv/scripts/activate; python setup.py install sdist bdist_wheel; twine upload dist/<package>-${input:packageVersion}*.*",
+            "problemMatcher": []
+        }
+    ],
+
+    "inputs": [
+        {
+            "id": "packageVersion",
+            "type": "promptString",
+            "description": "Enter version string",
+        }
+    ]
+
+and use ctrl-p task push to pypi to push the task
 
 - then force install
 
