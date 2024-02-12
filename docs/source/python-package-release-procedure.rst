@@ -161,7 +161,7 @@ alternately create a task in tasks.json
         {
             "label": "push to pypi",
             "type": "shell",
-            "command":"venv/scripts/activate; python -m build; twine upload dist/<package>-${input:packageVersion}*.*",
+            "command":"venv/scripts/activate; python -m build; twine upload dist/<package>-${input:packageVersion}.tar.* dist/loutilities-${input:packageVersion}-*.*",
             "problemMatcher": []
         }
     ],
