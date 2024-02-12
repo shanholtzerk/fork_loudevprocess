@@ -150,7 +150,7 @@ release
 
 .. code-block:: shell
 
-    python setup.py install sdist bdist_wheel
+    python -m build
     twine upload dist/<package>-<version>*.*
 
 alternately create a task in tasks.json
@@ -161,7 +161,7 @@ alternately create a task in tasks.json
         {
             "label": "push to pypi",
             "type": "shell",
-            "command":"venv/scripts/activate; python setup.py install sdist bdist_wheel; twine upload dist/<package>-${input:packageVersion}*.*",
+            "command":"venv/scripts/activate; python -m build; twine upload dist/<package>-${input:packageVersion}*.*",
             "problemMatcher": []
         }
     ],
