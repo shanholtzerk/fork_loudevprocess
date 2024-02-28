@@ -412,15 +412,15 @@ Apache setup example for production host:
 
 flask db migrations
 ---------------------------
-Execute flask db migrations in the development shell container
+Execute flask db migrations in the development app container
 
 .. code-block:: shell
 
     # initialize migrations environment
-    docker exec webmodules-shell-1 flask db init --multidb
+    docker exec <dockerapp>-app-1 flask db init --multidb
 
     # create migration
-    docker exec webmodules-shell-1 flask db migrate -m "migration comment"
+    docker exec <dockerapp>-app-1 flask db migrate -m "migration comment"
 
 To add additional database binds to single database, follow 
 https://github.com/miguelgrinberg/Flask-Migrate/issues/179#issuecomment-355344826
