@@ -29,6 +29,11 @@ I was seeing some password issues in production, so I'm saving a few links
 * https://medium.com/@crmcmullen/how-to-run-mysql-8-0-with-native-password-authentication-502de5bac661
 * https://stackoverflow.com/questions/44010575/mysql-access-denied-for-user-userip-address-remote-access-allowed-for-so
 
+Backup / restore from docker container
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+ref: https://stackoverflow.com/questions/34773555/exporting-data-from-mysql-docker-container
+
 CI/CD Workflow
 -------------------
 
@@ -307,6 +312,10 @@ Debug pypi Package Stored Locally
 
 If a separate package that is normally loaded via pypi is in the workspace, but is being developed along with the main package (e.g., loutilities), an
 additional docker compose file and ``launch.json`` configuration is required.
+
+.. note::
+    if you need to debug a development version, release the dev version to pypi first, then bump the 
+    .dev<n> number so they don't get confused on the next push
 
 ``docker-compose.loutilities.yml``
 
