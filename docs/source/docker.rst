@@ -313,10 +313,6 @@ Debug pypi Package Stored Locally
 If a separate package that is normally loaded via pypi is in the workspace, but is being developed along with the main package (e.g., loutilities), an
 additional docker compose file and ``launch.json`` configuration is required.
 
-.. note::
-    if you need to debug a development version, release the dev version to pypi first, then bump the 
-    .dev<n> number so they don't get confused on the next push
-
 ``docker-compose.loutilities.yml``
 
 .. code-block:: docker
