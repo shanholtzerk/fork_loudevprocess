@@ -111,22 +111,6 @@ Set up PHP
     sudo yum -y install php php-mysql
     sudo systemctl restart httpd.service
 
-Firewall: allow certain access
--------------------------------
-
-    sudo systemctl start firewalld
-    sudo firewall-cmd --permanent --add-service=ssh
-    sudo firewall-cmd --permanent --add-service=http
-    sudo firewall-cmd --permanent --add-service=https
-    sudo firewall-cmd --permanent --add-service=smtp
-    sudo firewall-cmd --reload
-    sudo systemctl enable firewalld
-
-Set up HTTPS / certbot
-------------------------
-
-    sudo yum install -y python-certbot-apache
-
 install additional PHP versions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -182,6 +166,22 @@ https://blog.remirepo.net/post/2016/04/16/My-PHP-Workstation
         ---
         >     SetHandler "proxy:fcgi://127.0.0.1:9074"
     sudo apachectl restart
+
+Firewall: allow certain access
+-------------------------------
+
+    sudo systemctl start firewalld
+    sudo firewall-cmd --permanent --add-service=ssh
+    sudo firewall-cmd --permanent --add-service=http
+    sudo firewall-cmd --permanent --add-service=https
+    sudo firewall-cmd --permanent --add-service=smtp
+    sudo firewall-cmd --reload
+    sudo systemctl enable firewalld
+
+Set up HTTPS / certbot
+------------------------
+
+    sudo yum install -y python-certbot-apache
 
 Create a2ensite, a2dissite
 --------------------------
