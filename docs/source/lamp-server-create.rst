@@ -1,14 +1,14 @@
-CentOS LAMP Server Create
+LAMP Server Create
 +++++++++++++++++++++++++++++++
 
 This uses digitalocean for server and volume creation, but most of this
-could be used for any CentOS LAMP server.
+could be used for any LAMP server.
 
 Create Droplet
 ==============
 
 -  log into digitalocean.com
--  Create > Droplets <name> 1 GB / 30 GB Disk / Centos 7 / NYC1 IP
+-  Create > Droplets <name> 8 GB / 80 GB Disk / 4 Intel vCPUs / Rocky Linux / NYC1 IP
 
 Some Upkeep [root]
 ==================
@@ -86,7 +86,7 @@ See https://serverfault.com/a/372998
 LAMP and Security Stack
 =======================
 
-Set up LAMP stack 
+Set up Apache
 ------------------
 
 See https://www.digitalocean.com/community/tutorials/how-to-install-linux-apache-mysql-php-lamp-stack-on-centos-7
@@ -96,12 +96,24 @@ See https://www.digitalocean.com/community/tutorials/how-to-install-linux-apache
     sudo yum -y install httpd
     sudo systemctl start httpd.service
     sudo systemctl enable httpd.service
+
+Set up mysql
+------------------
+
     sudo yum -y install mariadb-server mariadb
     sudo systemctl start mariadb
     sudo mysql_secure_installation
     sudo systemctl enable mariadb.service
+
+Set up PHP
+-----------------
+
     sudo yum -y install php php-mysql
     sudo systemctl restart httpd.service
+
+Firewall: allow certain access
+-------------------------------
+
     sudo systemctl start firewalld
     sudo firewall-cmd --permanent --add-service=ssh
     sudo firewall-cmd --permanent --add-service=http
@@ -109,6 +121,10 @@ See https://www.digitalocean.com/community/tutorials/how-to-install-linux-apache
     sudo firewall-cmd --permanent --add-service=smtp
     sudo firewall-cmd --reload
     sudo systemctl enable firewalld
+
+Set up HTTPS / certbot
+------------------------
+
     sudo yum install -y python-certbot-apache
 
 install additional PHP versions
@@ -250,7 +266,7 @@ Backups
 Create backup volume
 --------------------
 
--  [DO console] Volumes > Add Volume > 10 GB
+-  [DO console] Volumes > Add Volume > 200 GB
 
 ::
 

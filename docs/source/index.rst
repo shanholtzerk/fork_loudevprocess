@@ -10,7 +10,7 @@ loutility development process documentation
    :maxdepth: 2
    :caption: Contents:
 
-   centos-lamp-server-create
+   lamp-server-create
    linux-user-account-creation
    linux-virtual-host-setup
    mysql-database-management
