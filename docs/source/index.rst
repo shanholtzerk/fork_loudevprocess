@@ -10,17 +10,17 @@ loutility development process documentation
    :maxdepth: 2
    :caption: Contents:
 
-   lamp-server-create
    linux-user-account-creation
-   linux-virtual-host-setup
-   mysql-database-management
    database-migration-handling
    python-package-release-procedure
-   https-support-notes
    python-3
    linux-random-procedures
    development-environment
    docker
+   mysql-database-management
+   linux-virtual-host-setup
+   lamp-server-create
+   https-support-notes
    patterns
    definitions
 

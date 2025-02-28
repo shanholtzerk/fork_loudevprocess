@@ -1,82 +1,72 @@
 HTTPS Support Notes
 +++++++++++++++++++++
 
+.. warning::
+
+    This is obsolete as we're currently using caddy for https support, which
+    manages certificates automatically.
+
 Prepare for SSL Certificate
 ---------------------------
 
--  sudo yum install python-certbot-apache
+follow instructions at https://certbot.eff.org/instructions?ws=apache&os=snap
 
 Get certificates from letsencrypt.com
 -------------------------------------
 
--  certbot --apache -d {server}scoretility.com certonly
+::
 
--  update /etc/httpd/sites-available/{server}scoretility.com.conf
+    certbot --apache -d {server}scoretility.com certonly
 
-..
+    update /etc/httpd/sites-available/{server}scoretility.com.conf
 
-   <VirtualHost \*:80>
+        <VirtualHost *:80>
+        ServerName members.loutilities.com
+        ServerAlias www.members.loutilities.com
+        Redirect permanent / https://members.loutilities.com/
+        DocumentRoot /var/www/www.members.loutilities.com
+        LogLevel warn
+        ErrorLog /var/www/www.members.loutilities.com/logs/error.log
+        CustomLog /var/www/www.members.loutilities.com/logs/requests.log combined
 
-   ServerName {server}scoretility.com
+        <Directory /var/www/www.members.loutilities.com>
+            allow from all
+            Options +Indexes
+        </Directory>
+        </VirtualHost>
 
-   Redirect permanent / https://{server}scoretility.com/
+        <VirtualHost *:443>
+        ServerName members.loutilities.com
+        ServerAlias www.members.loutilities.com
+        ServerAdmin lking@pobox.com
+        SSLEngine on
+        SSLCertificateFile /etc/letsencrypt/live/www.members.loutilities.com/fullchain.pem
+        SSLCertificateKeyFile /etc/letsencrypt/live/www.members.loutilities.com/privkey.pem
+        SSLCertificateChainFile /etc/letsencrypt/live/www.members.loutilities.com/chain.pem
 
-   </VirtualHost>
+        DocumentRoot /var/www/www.members.loutilities.com/members
 
-   <VirtualHost \*:443>
+        # wsgi stuff - <wsgi-port> needs to be unique among vhosts
+        WSGIScriptReloading On
+        ProxyPass / http://proxysvr.loutilities.com:8005/
+        ProxyPassReverse / http://proxysvr.loutilities.com:8005/
+        RequestHeader set X-Forwarded-Port 443
+        RequestHeader set X-Forwarded-Scheme https
 
-   ServerAdmin lking@pobox.com
+        <Directory /var/www/www.members.loutilities.com/members>
+            Options Indexes FollowSymLinks MultiViews
+            AllowOverride All
+            Order deny,allow
+            allow from all
+        </Directory>
 
-   ServerName {server}scoretility.com
+        LogLevel warn
+        ErrorLog /var/www/www.members.loutilities.com/logs/error.log
+        CustomLog /var/www/www.members.loutilities.com/logs/requests.log combined
 
-   [for production
+        </VirtualHost>
 
-   ServerName www.scoretility.com
-
-   ServerAlias scoretility.com]
-
-   SSLEngine on
-
-   SSLCertificateFile
-   /etc/letsencrypt/live/{server}scoretility.com/fullchain.pem
-
-   SSLCertificateKeyFile
-   /etc/letsencrypt/live/{server}scoretility.com/privkey.pem
-
-   SSLCertificateChainFile
-   /etc/letsencrypt/live/{server}scoretility.com/chain.pem
-
-   DocumentRoot /var/www/{server}scoretility.com/wordpress
-
-   <Directory />
-
-   Options FollowSymLinks
-
-   AllowOverride None
-
-   </Directory>
-
-   <Directory /var/www/{server}scoretility.com/wordpress>
-
-   Options Indexes FollowSymLinks MultiViews
-
-   AllowOverride All
-
-   Order allow,deny
-
-   allow from all
-
-   </Directory>
-
-   LogLevel warn
-
-   ErrorLog /var/www/{server}scoretility.com/logs/error.log
-
-   CustomLog /var/www/{server}scoretility.com/logs/requests.log combined
-
-   </VirtualHost>
-
--  sudo apachectl restart
+    sudo apachectl restart
 
 Notes
 -----

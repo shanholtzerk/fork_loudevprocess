@@ -373,10 +373,41 @@ Restart Service
 To restart the service, e.g., after changes have been made in initialization code, use ``docker compose <files> restart`` or ``docker compose <files> stop``, 
 ``docker compose <files> start``. Also see https://www.shellhacks.com/docker-compose-start-stop-restart-build-single-service/
 
+.. _caddy-conf:
+
+Caddy Configuration
+-----------------------
+caddy https://caddyserver.com/ is used to create reverse proxies into the docker
+compose applications. Within the docker compose application is an nginx
+container.
+
+Also see https://caddyserver.com/docs/quick-starts/reverse-proxy
+
+Add the following to ``/etc/caddy/Caddyfile`` for each vhost
+
+.. code-block:: shell
+
+    # <vhost> (e.g., members.loutilities.com)
+
+    <vhost> {
+        reverse_proxy localhost:<port>
+    }
+
+    www.<vhost> {
+        redir https://<vhost>{uri}
+    }
+
+after editing ``/etc/caddy/Caddyfile``, reload
+
+.. code-block:: shell
+
+    sudo systemctl reload caddy
+
+    
 .. _docker-apache-conf:
 
-Apache Configuration
--------------------------
+Apache Configuration (obsolete)
+-------------------------------------
 
 The server has apache running natively. We'll proxy via apache, then take care of routing within the docker compose application
 with an nginx container.
@@ -419,13 +450,16 @@ flask db migrations
 ---------------------------
 Execute flask db migrations in the development app container
 
+.. note::
+    there must be a bind for /app/migrations in the app container so source will be saved
+
 .. code-block:: shell
 
     # initialize migrations environment
-    docker exec <dockerapp>-app-1 flask db init --multidb
+    docker compose exec app flask db init --multidb
 
     # create migration
-    docker exec <dockerapp>-app-1 flask db migrate -m "migration comment"
+    docker compose exec app flask db migrate -m "migration comment"
 
 To add additional database binds to single database, follow 
 https://github.com/miguelgrinberg/Flask-Migrate/issues/179#issuecomment-355344826

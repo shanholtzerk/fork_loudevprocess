@@ -1,6 +1,11 @@
 LAMP Server Create
 +++++++++++++++++++++++++++++++
 
+.. warning::
+
+    This is obsolete as we're currently using docker containers, which contain
+    the LAMP server.
+
 This uses digitalocean for server and volume creation, but most of this
 could be used for any LAMP server.
 
@@ -14,8 +19,8 @@ Some Upkeep [root]
 ==================
 ::
 
-    yum install -y vim
-    yum -y update (see /var/log/yum.log for all updates)
+    dnf install -y vim
+    dnf -y update (see /var/log/dnf.log for all updates)
     shutdown -r now
 
 
@@ -23,7 +28,7 @@ Additional repos
 ----------------
 ::
 
-    yum install -y epel-release
+    dnf install -y epel-release
 
 sudo user
 =========
@@ -44,12 +49,6 @@ Set sudo timeout (minutes)
     sudo visudo # replace 'Defaults env_reset' with following
         Defaults env_reset,timestamp_timeout=30
 
-Set up digitalocean agent for monitoring [root]
-===============================================
-::
-
-    curl -sSL https://agent.digitalocean.com/install.sh \| sh
-
 history should display date/time
 ================================
 ::
@@ -61,15 +60,13 @@ Set local time and keep in sync
 ::
 
     sudo timedatectl set-timezone America/New_York
-    sudo yum -y install ntp
-    sudo systemctl start ntpd
-    sudo systemctl enable ntpd
+    sudo dnf install -y chrony # installs and starts ntp client/servers
 
 Turn off cron information to /var/log/messages
 ==============================================
 ::
 
-    sudo vim /etc/rc.local # add /usr/bin/systemd-analyze set-log-level notice
+    sudo vim /etc/rc.d/rc.local # add /usr/bin/systemd-analyze set-log-level notice
     sudo /usr/bin/systemd-analyze set-log-level notice
     sudo chmod +x /etc/rc.d/rc.local
 
@@ -93,82 +90,14 @@ See https://www.digitalocean.com/community/tutorials/how-to-install-linux-apache
 
 ::
 
-    sudo yum -y install httpd
+    sudo dnf install -y httpd
     sudo systemctl start httpd.service
     sudo systemctl enable httpd.service
 
-Set up mysql
-------------------
-
-    sudo yum -y install mariadb-server mariadb
-    sudo systemctl start mariadb
-    sudo mysql_secure_installation
-    sudo systemctl enable mariadb.service
-
-Set up PHP
------------------
-
-    sudo yum -y install php php-mysql
-    sudo systemctl restart httpd.service
-
-install additional PHP versions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-See https://stackoverflow.com/a/50079574/799921 and
-https://blog.remirepo.net/post/2016/04/16/My-PHP-Workstation
-::
-
-    # this is done once
-    sudo yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm -y
-    sudo yum install http://rpms.remirepo.net/enterprise/remi-release-7.rpm -y
-    sudo yum install yum-utils -y
-
-    # this is done for each new version
-    sudo yum install php74y -y
-    sudo yum install php74-php-fpm -y
-    sudo vim /etc/opt/remi/php74/php-fpm.d/www.conf
-        listen = 127.0.0.1:9074 # 9000 + 74 for the php version
-    sudo yum install php74-php-mysqlnd -y
-    sudo yum install php74-php-xml -y
-    sudo yum install php74-php-gd -y
-
-    # optimize memory usage
-    sudo vim /etc/opt/remi/php74/php.ini
-        409c409
-        < memory_limit = 128M
-        ---
-        > memory_limit = 256M
-        846c846
-        < upload_max_filesize = 2M
-        ---
-        > upload_max_filesize = 4M
-    sudo vim /etc/opt/remi/php74/php-fpm.d/www.conf
-        104c104
-        < pm = dynamic
-        ---
-        > pm = ondemand
-        115c115
-        < pm.max_children = 50
-        ---
-        > pm.max_children = 25
-        141c141
-        < ;pm.max_requests = 500
-        ---
-        > pm.max_requests = 500
-
-    sudo systemctl enable php74-php-fpm
-    sudo systemctl start php74-php-fpm
-
-    # this is done for each vhost
-    sudo vim /etc/httpd/sites-available/www.steeplechasers.org.conf # match the listen port above
-        24c24
-        <     SetHandler "proxy:fcgi://127.0.0.1:9073"
-        ---
-        >     SetHandler "proxy:fcgi://127.0.0.1:9074"
-    sudo apachectl restart
-
 Firewall: allow certain access
 -------------------------------
+
+::
 
     sudo systemctl start firewalld
     sudo firewall-cmd --permanent --add-service=ssh
@@ -180,15 +109,25 @@ Firewall: allow certain access
 
 Set up HTTPS / certbot
 ------------------------
+requires epel-release
 
-    sudo yum install -y python-certbot-apache
+::
+
+    sudo dnf install -y certbot python-certbot-apache
+
+Set up git
+--------------
+
+::
+
+    sudo dnf install -y git-all
 
 Create a2ensite, a2dissite
 --------------------------
 See http://www.tecmint.com/apache-virtual-hosting-in-centos/
 ::
 
-   sudo vim /usr/bin/a2ensite
+   sudo vim /usr/local/bin/a2ensite
         #!/bin/bash
         if test -d /etc/httpd/sites-available && test -d /etc/httpd/sites-enabled  ; then
         echo "-----------------------------------------------"
@@ -225,7 +164,7 @@ See http://www.tecmint.com/apache-virtual-hosting-in-centos/
 
     sudo chmod +x /usr/local/bin/a2ensite
 
-    sudo vim /usr/bin/a2dissite
+    sudo vim /usr/local/bin/a2dissite
         #!/bin/bash
         avail=/etc/httpd/sites-enabled/$1.conf
         enabled=/etc/httpd/sites-enabled
@@ -257,6 +196,89 @@ See http://www.tecmint.com/apache-virtual-hosting-in-centos/
        353a354
        > IncludeOptional sites-enabled/*.conf
 
+
+Set up mysql
+------------------
+
+    sudo dnf -y install mariadb-server mariadb
+    sudo systemctl start mariadb
+    sudo mysql_secure_installation
+    sudo systemctl enable mariadb.service
+
+Set up PHP
+-----------------
+
+    sudo dnf -y install php php-mysql
+    sudo systemctl restart httpd.service
+
+install additional PHP versions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+See https://stackoverflow.com/a/50079574/799921 and
+https://blog.remirepo.net/post/2016/04/16/My-PHP-Workstation
+::
+
+    # this is done once
+    sudo dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm -y
+    sudo dnf install http://rpms.remirepo.net/enterprise/remi-release-7.rpm -y
+    sudo dnf install dnf-utils -y
+
+    # this is done for each new version
+    sudo dnf install php74y -y
+    sudo dnf install php74-php-fpm -y
+    sudo vim /etc/opt/remi/php74/php-fpm.d/www.conf
+        listen = 127.0.0.1:9074 # 9000 + 74 for the php version
+    sudo dnf install php74-php-mysqlnd -y
+    sudo dnf install php74-php-xml -y
+    sudo dnf install php74-php-gd -y
+
+    # optimize memory usage
+    sudo vim /etc/opt/remi/php74/php.ini
+        409c409
+        < memory_limit = 128M
+        ---
+        > memory_limit = 256M
+        846c846
+        < upload_max_filesize = 2M
+        ---
+        > upload_max_filesize = 4M
+    sudo vim /etc/opt/remi/php74/php-fpm.d/www.conf
+        104c104
+        < pm = dynamic
+        ---
+        > pm = ondemand
+        115c115
+        < pm.max_children = 50
+        ---
+        > pm.max_children = 25
+        141c141
+        < ;pm.max_requests = 500
+        ---
+        > pm.max_requests = 500
+
+    sudo systemctl enable php74-php-fpm
+    sudo systemctl start php74-php-fpm
+
+    # this is done for each vhost
+    sudo vim /etc/httpd/sites-available/www.steeplechasers.org.conf # match the listen port above
+        24c24
+        <     SetHandler "proxy:fcgi://127.0.0.1:9073"
+        ---
+        >     SetHandler "proxy:fcgi://127.0.0.1:9074"
+    sudo apachectl restart
+
+Install and start Docker
+============================
+See https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-rocky-linux-9#step-1-installing-docker
+
+::
+
+    sudo dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+    sudo dnf install -y docker-ce docker-ce-cli containerd.io
+    sudo systemctl start docker
+    sudo systemctl enable docker
+    sudo systemctl status docker
+
 Set up VHOST
 ============
 
@@ -281,8 +303,8 @@ Set up backup
 See https://www.digitalocean.com/community/tutorials/how-to-install-rsnapshot-on-ubuntu-12-04
 ::
 
-    sudo yum install -y rsnapshot
-    sudo yum install -y rsnapshot
+    sudo dnf install -y rsnapshot
+    sudo dnf install -y rsnapshot
     sudo vim /etc/rsnapshot.conf
         23c23
         < snapshot_root /.snapshots/
@@ -409,15 +431,15 @@ Set up server level security
 
 ::
 
-        sudo yum install -y fail2ban
+        sudo dnf install -y fail2ban
         sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
         sudo vim /etc/fail2ban/jail.local
         -  set ignoreip to your personal ip address
         -  set destemail to your personal email address
         -  set enabled to true (for desired jails)
         -  set bantime to 3600 (globally)
-        sudo systemctl start fail2ban
         sudo systemctl enable fail2ban
+        sudo systemctl start fail2ban
 
 .
    -  https://www.digitalocean.com/community/tutorials/how-to-install-aide-on-a-digitalocean-vps

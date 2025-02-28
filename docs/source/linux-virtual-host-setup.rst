@@ -165,3 +165,20 @@ Set up VHOST SSL
     sudo certbot renew --dry-run # verify operation
     sudo vim /etc/cron.d/certbot # run twice daily
     #    0 \*/12 \* \* \* root /usr/bin/certbot renew
+
+
+caddy setup (Apache alternative)
+------------------------------------
+Install caddy, ref https://caddyserver.com/docs/install#fedora-redhat-centos
+
+.. code-block:: shell
+
+    sudo dnf copr enable @caddy/caddy
+    sudo dnf install -y caddy
+    sudo systemctl enable --now caddy
+    sudo dnf install -y nss-tools
+    sudo caddy trust 
+    # next line grants access to 443 https://serverfault.com/questions/807883/caddy-listen-tcp-443-bind-permission-denied
+    sudo setcap CAP_NET_BIND_SERVICE=+eip $(which caddy) 
+
+Add virtual host(s) by :ref:`caddy-conf`

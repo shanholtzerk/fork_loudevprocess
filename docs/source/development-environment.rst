@@ -6,13 +6,9 @@ This document assumes a windows based development environment.
 Required Software
 -----------------------------
 
-* mysql or mariadb
-
-  * Suggest installing MAMP (https://www.mamp.info/). This also starts apache which isn't used, but provides phpMyAdmin for high level database Management
-
 * visual studio code (https://code.visualstudio.com/)
 * github desktop (https://desktop.github.com/) - you'll probably need a github account first
-* python (https://www.python.org/)
+* python (https://www.python.org/) - as of 2/28/25, 3.12 is the version used for development
 
 Required account access
 ---------------------------
@@ -21,23 +17,36 @@ Required account access
 Development System Configuration
 -------------------------------------
 
-* create config directory
+* create ``config`` directory
 
   * get examples from Lou
-  * create <app>.cfg
-  * create users.cfg 
+  * create ``<app>.cfg``
+  * create ``users.cfg``
+  * create ``db`` directory (this will get "secrets" files which contain the passwords for the database(s))
+
+    * https://www.lastpass.com/features/password-generator is a good way to generate passwords, 
+      best not top use symbols as sometimes they cause issues 
+
+  * create ``db_init`` directory (this will get sql import files -- note the sql file gets deleted after import)
+
+* create ``.env`` file (get example from Lou)
+
+  * update ``*_HOST`` variables to match your development environment
 
 * create and populate python virtual env (https://docs.python.org/3/library/venv.html)
 
+  use the following or let vscode do it for you
+
   .. code-block:: shell
 
-    python3 -m venv venv
-    venv\scripts\activate # or on linux source venv/bin/activate
+    python3 -m venv .venv
+    .venv\scripts\activate # or on linux source venv/bin/activate
     pip install -r requirements.txt
 
-* create and populate databases (:ref:`mysql-database-management`)
+* create and populate databases
 
-  * get sql import files from Lou
+  * ``.env`` file variables are used to name and create the database
+  * get sql import file(s) from Lou -- these go into the de_init 
 
 Shell file permissions
 --------------------------
@@ -58,7 +67,7 @@ Example docker files can be found at https://github.com/louking/webmodules, with
 
 vscode launch.json
 --------------------
-For debugging, you'll need the following in vscode's launch.json
+For debugging, you'll need the following in vscode's launch.json. Note that the existing repos all have launch.json and task.json files
 
   .. code-block:: shell
 
@@ -88,6 +97,8 @@ Build and start app in development, no debugging
 
     docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
 
+or ctrl-p task up (or task dev)
+
 Build and start app in development, with debugging
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -107,6 +118,11 @@ Build and start app in Production
     docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
 
 
+
+Kanban Board
+---------------
+Contact Lou to get read/write access to the repo's kanban board
+
 Development Workflow
 -----------------------
 
@@ -118,5 +134,7 @@ Synopsys:
 * clone fork on development workstation
 * create a branch for a given change
 * test change in development environment
+* commit change to branch -- title should be annoted with "(issue #)"
 * push change to forked repository
 * generate a pull request
+* mark issue as fixed
