@@ -5,25 +5,22 @@ This document assumes a windows based development environment.
 
 .. contents:: Table of Contents
     :depth: 3
-    
+
 Required Software
 -----------------------------
 
-* visual studio code (https://code.visualstudio.com/)
-* github desktop (https://desktop.github.com/) - you'll probably need a github account first
-* python (https://www.python.org/) - as of 2/28/25, 3.12 is the version used for development
-
-Required account access
----------------------------
-* github (https://github.com/)
+* GitHub account
+* Visual Studio Code (https://code.visualstudio.com/)
+* github desktop (https://desktop.github.com/)
+* python (https://www.python.org/) - as of 2/28/25, 3.12.x is the version used for development
 
 Development System Configuration
 -------------------------------------
 
-* clone the repository
-* create ``config`` directory
+* Clone the repository
+* Create the folder ``config`` within the repo top level directory
 
-  * get examples from Lou
+  * Get the following `.cfg` file examples from Lou
   * create ``<app>.cfg``
   * create ``users.cfg``
   * create ``db`` directory (this will get "secrets" files which contain the passwords for the database(s))
