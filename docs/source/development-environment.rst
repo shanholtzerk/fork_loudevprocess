@@ -3,6 +3,9 @@ Development Environment
 
 This document assumes a windows based development environment.
 
+.. contents:: Table of Contents
+    :depth: 3
+    
 Required Software
 -----------------------------
 
@@ -17,6 +20,7 @@ Required account access
 Development System Configuration
 -------------------------------------
 
+* clone the repository
 * create ``config`` directory
 
   * get examples from Lou
@@ -43,10 +47,25 @@ Development System Configuration
     .venv\scripts\activate # or on linux source venv/bin/activate
     pip install -r requirements.txt
 
+* set up mysql-docker app container group
+
+  .. code-block:: shell
+    
+    docker compose 
+
 * create and populate databases
 
   * ``.env`` file variables are used to name and create the database
-  * get sql import file(s) from Lou -- these go into the de_init 
+  * get sql import file(s) from Lou -- these go into the db_init 
+
+* users-compose-config.zip 
+
+  * create a new directory named users-dev or similar
+  * extract this file into that  directory 
+  * Edit .env to match your host directory names
+  * cp users-2025-03-05.sql config/db_init # note this is the extracted file from .gz
+  * cd users-dev
+  * docker compose up -d
 
 Shell file permissions
 --------------------------
