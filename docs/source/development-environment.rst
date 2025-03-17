@@ -19,24 +19,24 @@ Development System Configuration
 
 * Clone the repository
 * Create the folder ``config`` within the repo top level directory
-
-  * Get the following `.cfg` file examples from Lou
-  * create ``<app>.cfg``
-  * create ``users.cfg``
-  * create ``db`` directory (this will get "secrets" files which contain the passwords for the database(s))
+  The following must be placed within the new ``config`` folder
+  * Get the following ``.cfg`` file examples from Lou
+  * Ceate the file ``<app>.cfg``, for example ``members.cfg``
+  * Create the file ``users.cfg``
+  * Create the ``db`` directory (this will get "secrets" files which contain the passwords for the database(s))
 
     * https://www.lastpass.com/features/password-generator is a good way to generate passwords, 
-      best not top use symbols as sometimes they cause issues 
+      best not to use symbols as sometimes they cause issues
 
-  * create ``db_init`` directory (this will get sql import files -- note the sql file gets deleted after import)
+  * Create the ``db_init`` directory (this will get sql import files -- note the sql file gets deleted after import)
 
-* create ``.env`` file (get example from Lou)
+* Create an ``.env`` file (get example from Lou) in the repo top level directory
 
-  * update ``*_HOST`` variables to match your development environment
+  * Update the ``*_HOST`` variables to match your development environment
 
-* create and populate python virtual env (https://docs.python.org/3/library/venv.html)
+* Create and populate a Python virtual env (https://docs.python.org/3/library/venv.html):
 
-  use the following or let vscode do it for you
+  Use the following or let vscode do it for you
 
   .. code-block:: shell
 
@@ -44,7 +44,7 @@ Development System Configuration
     .venv\scripts\activate # or on linux source venv/bin/activate
     pip install -r requirements.txt
 
-* set up mysql-docker app container group
+* Set up mysql-docker app container group
 
   .. code-block:: shell
     
